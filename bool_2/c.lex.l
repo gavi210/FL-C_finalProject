@@ -22,7 +22,7 @@ true      {yylval = 1; return BOOLVALUE; }
 
 and       {return AND;}
 
-.           {ECHO; yyerror ("unexpected character");}
+.         {ECHO; yyerror ("unexpected character");}
 
 %%
 

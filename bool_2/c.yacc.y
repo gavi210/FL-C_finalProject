@@ -10,12 +10,12 @@ int yylex();
 
 %token AND
 %token BOOLVALUE
-%left BOOLVALUE
+%left BOOLVALUE AND
 
 %%
 
 program : program statement '\n'
-        | 
+        | /* empty */
         ;
 
 statement: boolExpr {printf("%d\n", $1);}
