@@ -3,22 +3,12 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
-
-int yyerror (char const *message)
-{
-  return fprintf (stderr, "%s\n", message);
-  fputs (message, stderr);
-  fputc ('\n', stderr);
-  return 0;
-}
-
-int yylex();
 %}
 
 
 %union {
-       char* lexeme;			// identifier - variable name
-       double value;			// value of an identifier of type NUM
+       char* lexeme;			//identifier
+       double value;			//value of an identifier of type NUM
        }
 
 %token <value>  NUM
@@ -49,5 +39,3 @@ expr  : expr '+' expr  {$$ = $1 + $3;}
 %%
 
 #include "lex.yy.c"
-
-
