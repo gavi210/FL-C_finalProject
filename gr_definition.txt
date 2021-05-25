@@ -1,0 +1,27 @@
+S -> D; S 
+    | A; S
+    | EOF
+
+D -> T id; 
+    | T id = Expr;
+
+A -> id = Exprs;
+
+Expr = ExprB
+    | ExprA
+
+ExprB -> (ExprB)
+    | true
+    | false
+    | !(ExprB)
+    | ExprB && ExprB
+    | ExprB || ExprB
+
+ExprA ->  (ExprA)
+    | INT
+    | DOUBLE
+    | ExprA + ExprA
+    | ExprA - ExprA
+    | ExprA * ExprA
+    | ExprA / ExprA
+    | -(ExprA)
