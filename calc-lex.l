@@ -8,7 +8,7 @@
 
 DIGIT         [0-9]
 INT_NUM       {DIGIT}+
-FLOAT_NUM     {DIGIT}\.{DIGIT}+
+FLOAT_NUM     {DIGIT}+\.{DIGIT}+
 
 BOOL_VAL true|false
 
@@ -17,9 +17,8 @@ BOOL_VAL true|false
 [ ]     { /* skip blanks */ }
 \n      { /* skip new line character */ }
 
-
 {INT_NUM}      { yylval.value = atof(yytext); return INT_VAL;}
-{FLOAT_NUM}    { printf("Float recognized\n"); yylval.value = atof(yytext); return FLOAT_VAL;}
+{FLOAT_NUM}    { yylval.value = atof(yytext); return FLOAT_VAL;}
 
 
 {BOOL_VAL}  { if (strcmp(yytext,"true") == 0) yylval.value = 1; else yylval.value = 0; return BOOL_VAL; }

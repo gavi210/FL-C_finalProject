@@ -89,9 +89,10 @@ void printErrorMessage(char* operator, int type1, int type2) {
 %type <detailed_node_info> stmt
  /* %type <value> line */
 
+%left BIGGER_THAN SMALLER_THAN EQUAL_TO NOT_EQUAL_TO BIGGER_EQ_THAN SMALLER_EQ_THAN
 %left MINUS PLUS
 %left MOLT DIV
-%left C_PAR BIGGER_THAN SMALLER_THAN EQUAL_TO NOT_EQUAL_TO BIGGER_EQ_THAN SMALLER_EQ_THAN
+%left C_PAR
 %right UMINUS NOT O_PAR
 
 %start stmt
@@ -105,53 +106,53 @@ stmt  : /* empty */
 expr  : O_PAR expr C_PAR      { $$.var_type = $2.var_type; $$.value = $2.value; }
 
       | expr PLUS expr        { if(typesAreCorrect($1.var_type, $3.var_type, PLUS)) {
-                                  $$.var_type = 0; $$.value = $1.value + $3.value;
+                                  $$.var_type = 2; $$.value = $1.value + $3.value;
                                 } else { printErrorMessage("+", $1.var_type, $3.var_type); return -1; } }
       | expr MINUS expr       { if(typesAreCorrect($1.var_type, $3.var_type, MINUS)) {
-                                  $$.var_type = 0; $$.value = $1.value - $3.value;
+                                  $$.var_type = 2; $$.value = $1.value - $3.value;
                                 } else { printErrorMessage("-", $1.var_type, $3.var_type); return -1; } }
       | expr MOLT expr        { if(typesAreCorrect($1.var_type, $3.var_type, MOLT)) {
-                                  $$.var_type = 0; $$.value = $1.value * $3.value; 
+                                  $$.var_type = 2; $$.value = $1.value * $3.value; 
                                 } else { printErrorMessage("*", $1.var_type, $3.var_type); return -1; } }
       | expr DIV expr         { if(typesAreCorrect($1.var_type, $3.var_type, DIV)) {
-                                  $$.var_type = 0; $$.value = $1.value / $3.value;
+                                  $$.var_type = 2; $$.value = $1.value / $3.value;
                                 } else { printErrorMessage("/", $1.var_type, $3.var_type); return -1; } }
 
       | MINUS expr %prec UMINUS { if(typesAreCorrect($2.var_type, 0, UMINUS)) {
-                                  $$.var_type = 0; $$.value = - ($2.value);
+                                  $$.var_type = $2.var_type; $$.value = - ($2.value);
                                 } else {
                                   char buffer[1024];
                                   snprintf(buffer, sizeof(buffer), "Operation '- UMINUS' is not applicabile with %s!\n", type_name[$2.var_type]);
                                   yyerror(buffer);
                                   return -1; } }
       | expr BIGGER_THAN expr { if(typesAreCorrect($1.var_type, $3.var_type, BIGGER_THAN)) {
-                                  $$.var_type = 1; $$.value = $1.value > $3.value;
+                                  $$.var_type = 0; $$.value = $1.value > $3.value;
                                 } else { printErrorMessage(">", $1.var_type, $3.var_type); return -1; } }
       | expr BIGGER_EQ_THAN expr { if(typesAreCorrect($1.var_type, $3.var_type, BIGGER_EQ_THAN)) {
-                                  $$.var_type = 1; $$.value = $1.value >= $3.value;
+                                  $$.var_type = 0; $$.value = $1.value >= $3.value;
                                 } else { printErrorMessage(">=", $1.var_type, $3.var_type); return -1; } }
       | expr SMALLER_THAN expr { if(typesAreCorrect($1.var_type, $3.var_type, SMALLER_THAN)) {
-                                  $$.var_type = 1; $$.value = $1.value < $3.value;
+                                  $$.var_type = 0; $$.value = $1.value < $3.value;
                                 } else { printErrorMessage("<", $1.var_type, $3.var_type); return -1; } }
       | expr SMALLER_EQ_THAN expr { if(typesAreCorrect($1.var_type, $3.var_type, SMALLER_EQ_THAN)) {
-                                  $$.var_type = 1; $$.value = $1.value <= $3.value;
+                                  $$.var_type = 0; $$.value = $1.value <= $3.value;
                                 } else { printErrorMessage("<=", $1.var_type, $3.var_type); return -1; } }
       | expr EQUAL_TO expr    { if(typesAreCorrect($1.var_type, $3.var_type, EQUAL_TO)) {
-                                  $$.var_type = 1; $$.value = $1.value == $3.value;
+                                  $$.var_type = 0; $$.value = $1.value == $3.value;
                                 } else { printErrorMessage("==", $1.var_type, $3.var_type); return -1; } }
       | expr NOT_EQUAL_TO expr { if(typesAreCorrect($1.var_type, $3.var_type, NOT_EQUAL_TO)) {
-                                  $$.var_type = 1; $$.value = !($1.value == $3.value);
+                                  $$.var_type = 0; $$.value = !($1.value == $3.value);
                                 } else { printErrorMessage("!=", $1.var_type, $3.var_type); return -1; } }
-      | NOT expr              { if(typesAreCorrect($2.var_type, 1, NOT)) {
-                                  $$.var_type = 1; $$.value = !($2.value);
+      | NOT expr              { if(typesAreCorrect($2.var_type, 0, NOT)) {
+                                  $$.var_type = 0; $$.value = !($2.value);
                               } else {
                                   char buffer[1024];
                                   snprintf(buffer, sizeof(buffer), "Operation '! NOT' is not applicabile with %s!\n", type_name[$2.var_type]);
                                   yyerror(buffer);
                                   return -1; } }
       | BOOL_VAL              { $$.var_type = 0; $$.value = $1; }
-      | FLOAT_VAL             { printf("Inside\n"); $$.var_type = 2; $$.value = $1; }
-      | INT_VAL               { $$.var_type = 1; $$.value = $1; }
+      | FLOAT_VAL             { printf("Recognized float value\n"); $$.var_type = 2; $$.value = $1; }
+      | INT_VAL               { printf("Recognized integer value\n"); $$.var_type = 1; $$.value = $1; }
       ;
 %%
 
