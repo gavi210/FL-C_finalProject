@@ -3,6 +3,16 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
+
+int yyerror (char const *message)
+{
+  return fprintf (stderr, "%s\n", message);
+  fputs (message, stderr);
+  fputc ('\n', stderr);
+  return 0;
+}
+
+int yylex();
 %}
 
 

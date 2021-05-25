@@ -1,0 +1,7 @@
+Two types:
+- double (int - cast to double)
+- boolean 
+
+Expressions over them
+- arithmetic expressions among double
+- boolean operators returning boolean value
