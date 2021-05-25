@@ -2,30 +2,33 @@
 %{
 #include <stdlib.h>
 #include <string.h>
+
 %}
 
 DIGIT    [0-9]
 NUM      {DIGIT}+(\.{DIGIT}+)?
 
-LETTER   [a-zA-Z]
-ID       {LETTER}({LETTER}|{DIGIT})*
-
+TRUE     true
+FALSE    false
 
 %%
 
 [ ]     { /* skip blanks */ }
 
-{NUM}    {yylval.value = atof(yytext);
-          return NUM;}
-{ID}     {yylval.lexeme = strdup(yytext);
-          return ID;}
+{NUM}    { yylval.value = atof(yytext); return NUM;}
+{TRUE}   { return TRUE; }
+{FALSE}  { return FALSE; }
 
-"+"     {return '+';}
-"-"     {return '-';}
-"*"     {return '*';}
-"/"     {return '/';}
-\n      {return '\n';}
+"+"     { return '+'; }
+"-"     { return '-'; }
+
+"<"     { return '<'; }
+">"     { return '>'; }
+"=="    { return '=='; }
+"("     { return '('; }
+")"     { return ')'; }
+
+\n      { /* skip new line character */ }
   
-
-
 %%
+

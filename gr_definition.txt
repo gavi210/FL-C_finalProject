@@ -1,7 +1,33 @@
 Two types:
-- double (int - cast to double)
+- double (int - cast to double) -> numbers are either in or double, doesn't matter 
 - boolean 
 
 Expressions over them
 - arithmetic expressions among double
 - boolean operators returning boolean value
+
+S -> Expr               {if(Expr.type != error) S.type = void, S.value = Expr.value 
+                            else S.type = error}
+
+Expr = (Expr1)          {if(Expr1.type != error) Expr.type = Expr1.type, Expr.value = Expr1.value
+                            else Expr1.type = error }
+    | BoolExpr          {Expr.type = BoolExpr.type, Expr.value = BoolExpr.value}
+    | ArithmExpr        {Expr.type = ArithmExpr.type, Expr.value = ArithmExpr.value}
+
+BoolExpr -> 
+    | TRUE              {BoolExpr.type = boolean, BoolExpr.value = true}
+    | FALSE             {BoolExpr.type = boolean, BoolExpr.value = false}
+    | !(BoolExpr1)         {if(BoolExpr1.type == boolean) BoolExpr.type = boolean, BoolExpr.value = !(BoolExpr1.value) 
+                            else BoolExpr.type = error}
+    | BoolExpr1 && BoolExpr2  {if(BoolExpr1.type == boolean && BoolExpr2.type == boolean) BoolExpr.type = boolean, BoolExpr.value = (BoolExpr1.value && BoolExpr2.value)
+                            else BoolExpr.type = error}
+    | BoolExpr1 || BoolExpr2  {if(BoolExpr1.type == boolean && BoolExpr2.type == boolean) BoolExpr.type = boolean, BoolExpr.value = (BoolExpr1.value || BoolExpr2.value)
+                            else BoolExpr.type = error}
+
+ArithmExpr ->  (ArithmExpr1)
+    | NUM
+    | ArithmExpr1 + ArithmExpr2
+    | ArithmExpr1 - ArithmExpr2
+    | ArithmExpr1 * ArithmExpr2
+    | ArithmExpr1 / ArithmExpr2
+    | -(ArithmExpr)
