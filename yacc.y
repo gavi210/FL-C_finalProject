@@ -23,7 +23,7 @@ int yywrap() {
 }
 
 // valid data types
-char* type_name[] = {"boolean", "integer", "float"};
+char* type_name[] = {"number", "boolean"};
 
 struct detailed_node {
       int var_type;         // 0 - number, 1 - boolean, -1 -error
@@ -32,30 +32,21 @@ struct detailed_node {
 
 // given the expr types and the operator, returns true if operators are valid, false otherwise
 bool typesAreCorrect(int type1, int type2, int operator) {
-  // binary arithmetic operators
-  if(operator == PLUS || operator == MINUS || operator == MOLT || operator == DIV) {
-    if(type1 != 0 && type2 != 0) // both numeric
+  
+  if(operator == PLUS || operator == MINUS || operator == MOLT || operator == DIV || operator == UMINUS) {
+    if(type1 == 0 && type2 == 0)
       return true;
     else
       return false;
   }
-  // unary arithmetic operators
-  else if(operator == UMINUS) {
-    if(type1 != 0) // look only at the first one, second meaningless
-      return true;
-    else
-      return false;
-  }
-  // binary boolean operators
   else if(operator == BIGGER_THAN || operator == BIGGER_EQ_THAN || operator == SMALLER_THAN || operator == SMALLER_EQ_THAN || operator == EQUAL_TO || operator == NOT_EQUAL_TO) {
-    if(type1 != 0 && type2 != 0)
+    if(type1 == 0 && type2 == 0)
       return true;
     else
       return false;
   }
-  // unary boolean operators
   else if(operator == NOT) {
-    if(type1 == 0) // look only at the first one, second meaningless
+    if(type1 == 1 && type2 == 1)
       return true;
     else
       return false; 
@@ -81,12 +72,12 @@ void printErrorMessage(char* operator, int type1, int type2) {
        struct detailed_node detailed_node_info;
        }
 
-%token <value> INT_VAL
-%token <value> FLOAT_VAL 
+%token <value> NUM_VAL 
 %token <value> BOOL_VAL // matches boolean values (>= 0: true, < 0: false)
 
 %type <detailed_node_info> expr
 %type <detailed_node_info> stmt
+%type <detailed_node_info> prog
  /* %type <value> line */
 
 %left MINUS PLUS
@@ -97,6 +88,10 @@ void printErrorMessage(char* operator, int type1, int type2) {
 %start stmt
 
 %%
+
+prog  : /* empty */
+      | prog stmt ';' { printf("prog\n"); }
+      ;
 
 stmt  : /* empty */
       | stmt expr ';' { printf("Stmt... Type: %d, Value: %f\n", $2.var_type, $2.value); } 
@@ -149,9 +144,8 @@ expr  : O_PAR expr C_PAR      { $$.var_type = $2.var_type; $$.value = $2.value; 
                                   snprintf(buffer, sizeof(buffer), "Operation '! NOT' is not applicabile with %s!\n", type_name[$2.var_type]);
                                   yyerror(buffer);
                                   return -1; } }
-      | BOOL_VAL              { $$.var_type = 0; $$.value = $1; }
-      | FLOAT_VAL             { printf("Inside\n"); $$.var_type = 2; $$.value = $1; }
-      | INT_VAL               { $$.var_type = 1; $$.value = $1; }
+      | BOOL_VAL              { $$.var_type = 1; $$.value = $1; }
+      | NUM_VAL               { $$.var_type = 0; $$.value = $1; }
       ;
 %%
 

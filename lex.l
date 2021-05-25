@@ -2,13 +2,13 @@
 %{
 #include <stdlib.h>
 #include <string.h>
-//#include "y.tab.h" // imports all declarations done in yacc.y
+#include "y.tab.h" // imports all declarations done in yacc.y
 
 %}
 
 DIGIT         [0-9]
 INT_NUM       {DIGIT}+
-FLOAT_NUM     {DIGIT}\.{DIGIT}+
+FLOAT_NUM     {INT_NUM}(\.{DIGIT}+)
 
 BOOL_VAL true|false
 
@@ -17,10 +17,8 @@ BOOL_VAL true|false
 [ ]     { /* skip blanks */ }
 \n      { /* skip new line character */ }
 
-
-{INT_NUM}      { yylval.value = atof(yytext); return INT_VAL;}
-{FLOAT_NUM}    { printf("Float recognized\n"); yylval.value = atof(yytext); return FLOAT_VAL;}
-
+{INT_NUM}      { yylval.value = atof(yytext); return NUM_VAL;}
+{FlOAT_NUM}    { yylval.value = atof(yytext); return NUM_VAL;}
 
 {BOOL_VAL}  { if (strcmp(yytext,"true") == 0) yylval.value = 1; else yylval.value = 0; return BOOL_VAL; }
 
