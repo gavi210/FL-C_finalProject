@@ -1,0 +1,39 @@
+S -> D; S1              {if(D.type == void && S1.type == void) S.type = void 
+                            else S.type = error}
+    | A; S1             {if(A.type == void && S1.type == void) S.type = void 
+                            else S.type = error}
+    | EOF               {S.type = void}
+
+D -> T id;              {id.type = T.type}
+    | T id = Expr;      {if(T.type == Expr.type) id.type = T.type, id.value = Expr.value, D.type = void 
+                            else D.type = error}
+
+T -> INT                {T.type = int}
+    | REAL              {T.type = real}
+    | BOOLEAN           {T.type = boolean}
+
+A -> id = Expr;         {if(id.type == Expr.type) id.value = Expr.value, A.type = void 
+                            else A.type = error}
+
+Expr = ExprB            {Expr.type = ExprB.type, Expr.value = ExprB.value}
+    | ExprA             {Expr.type = ExprA.type, Expr.value = ExprA.value}
+
+ExprB -> (ExprB1)       {if(ExprB1.type == boolean) ExprB.type = boolean, ExprB.value = ExprB1.value 
+                            else ExprB.type = error}
+    | true              {ExprB.type = boolean, ExprB.value = true}
+    | false             {ExprB.type = boolean, ExprB.value = false}
+    | !(ExprB1)         {if(ExprB1.type == boolean) ExprB.type = boolean, ExprB.value = !(ExprB1.value) 
+                            else ExprB.type = error}
+    | ExprB1 && ExprB2  {if(ExprB1.type == boolean && ExprB2.type == boolean) ExprB.type = boolean, ExprB.value = (ExprB1.value && ExprB2.value)
+                            else ExprB.type = error}
+    | ExprB1 || ExprB2  {if(ExprB1.type == boolean && ExprB2.type == boolean) ExprB.type = boolean, ExprB.value = (ExprB1.value || ExprB2.value)
+                            else ExprB.type = error}
+
+ExprA ->  (ExprA1)
+    | INT_NUM
+    | REAL_NUM
+    | ExprA1 + ExprA2
+    | ExprA1 - ExprA2
+    | ExprA1 * ExprA2
+    | ExprA1 / ExprA2
+    | -(ExprA)
