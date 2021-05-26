@@ -2,7 +2,7 @@
 %{
 #include <stdlib.h>
 #include <string.h>
-//#include "y.tab.h" // imports all declarations done in yacc.y
+#include "y.tab.h" // imports all declarations done in yacc.y
 
 %}
 
@@ -30,6 +30,8 @@ BOOL_VAL true|false
 
 "<"     { return SMALLER_THAN; }
 ">"     { return BIGGER_THAN; }
+"<="    { return SMALLER_EQ_THAN; }
+">="    { return BIGGER_EQ_THAN; }
 "=="    { return EQUAL_TO; }
 "!="    { return NOT_EQUAL_TO; }
 "!"     { return NOT; }

@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-// on parsing error
+//  print parsing error
 int yyerror (char const *message)
 {
   return fprintf (stderr, "%s\n", message);
@@ -14,10 +14,10 @@ int yyerror (char const *message)
   return 0;
 }
 
-// prototype for yylex function - decleared in the lex.l file
+// prototype for yylex function - produced by compling lex.l file
 int yylex(void);
 
-// on EOF ends (?)
+// on EOF - stop scanning
 int yywrap() {
       return 1;
 }
@@ -26,11 +26,12 @@ int yywrap() {
 char* type_name[] = {"boolean", "integer", "float"};
 
 struct detailed_node {
-      int var_type;         // 0 - number, 1 - boolean, -1 -error
+      int var_type;         // 0 - boolean, 1 - integer, 2 - double, -1 -error
       double value;
 }; 
 
-// given the expr types and the operator, returns true if operators are valid, false otherwise
+// true - operands are compatible
+// false - operands not compatible
 bool typesAreCorrect(int type1, int type2, int operator) {
   // binary arithmetic operators
   if(operator == PLUS || operator == MINUS || operator == MOLT || operator == DIV) {
@@ -61,15 +62,61 @@ bool typesAreCorrect(int type1, int type2, int operator) {
       return false; 
   }
 
+  // other cases return false
   return false;
 };
 
+// on type not compatible - prompt the user error reason
 void printErrorMessage(char* operator, int type1, int type2) {
   char buffer[1024];
   snprintf(buffer, sizeof(buffer), "Operation '%s' is not applicabile with %s and %s!\n", operator, type_name[type1], type_name[type2]);
 
   yyerror(buffer);
   return;
+}
+
+// output adapts to variable type
+void printResult(int type, double value) {
+  char buffer[1024];
+  if(type == 0) // boolean
+    snprintf(buffer, sizeof(buffer), "Type: %s, Value: %d\n", type_name[type], value!=0.0);
+  else if(type == 1) // integer
+    snprintf(buffer, sizeof(buffer), "Type: %s, Value: %d\n", type_name[type], (int) value);
+  else // double
+    snprintf(buffer, sizeof(buffer), "Type: %s, Value: %f\n", type_name[type], value);
+
+  printf("%s\n", buffer);
+  return;
+}
+
+// return max value from a and b - if int (1) and duoble (2) - returns double (2)
+int max(int a, int b) {
+
+  if(a >= b)
+    return a;
+  else 
+    return b;
+}
+
+// return the correct value for the operation - apply type cohercion 
+double getValue(int operator, int type, double val1, double val2) {
+  double result;
+  if(operator == DIV) {
+    if(type == 1) 
+      result = (int) val1 / (int) val2;
+    else
+      result = val1 / val2;
+  }
+  else if(operator == MOLT) {
+    result = val1 * val2;
+  } 
+  else if(operator == PLUS) {
+    result = val1 + val2;
+  }
+  else
+    result = val1 - val2;
+
+  return result;
 }
 
 %}
@@ -87,7 +134,6 @@ void printErrorMessage(char* operator, int type1, int type2) {
 
 %type <detailed_node_info> expr
 %type <detailed_node_info> stmt
- /* %type <value> line */
 
 %left BIGGER_THAN SMALLER_THAN EQUAL_TO NOT_EQUAL_TO BIGGER_EQ_THAN SMALLER_EQ_THAN
 %left MINUS PLUS
@@ -99,23 +145,24 @@ void printErrorMessage(char* operator, int type1, int type2) {
 
 %%
 
-stmt  : /* empty */
-      | stmt expr ';' { printf("Stmt... Type: %d, Value: %f\n", $2.var_type, $2.value); } 
+stmt  : 
+      | stmt expr ';'   { printResult($2.var_type, $2.value); } 
+      | stmt ';'        { printResult($1.var_type, $1.value); }
       ;
 
 expr  : O_PAR expr C_PAR      { $$.var_type = $2.var_type; $$.value = $2.value; }
 
       | expr PLUS expr        { if(typesAreCorrect($1.var_type, $3.var_type, PLUS)) {
-                                  $$.var_type = 2; $$.value = $1.value + $3.value;
+                                  $$.var_type = max($1.var_type, $3.var_type); $$.value = getValue(PLUS, $$.var_type, $1.value, $3.value);
                                 } else { printErrorMessage("+", $1.var_type, $3.var_type); return -1; } }
       | expr MINUS expr       { if(typesAreCorrect($1.var_type, $3.var_type, MINUS)) {
-                                  $$.var_type = 2; $$.value = $1.value - $3.value;
+                                  $$.var_type = max($1.var_type, $3.var_type); $$.value = $1.value - $3.value;
                                 } else { printErrorMessage("-", $1.var_type, $3.var_type); return -1; } }
       | expr MOLT expr        { if(typesAreCorrect($1.var_type, $3.var_type, MOLT)) {
-                                  $$.var_type = 2; $$.value = $1.value * $3.value; 
+                                  $$.var_type = max($1.var_type, $3.var_type); $$.value = $1.value * $3.value; 
                                 } else { printErrorMessage("*", $1.var_type, $3.var_type); return -1; } }
       | expr DIV expr         { if(typesAreCorrect($1.var_type, $3.var_type, DIV)) {
-                                  $$.var_type = 2; $$.value = $1.value / $3.value;
+                                  $$.var_type = max($1.var_type, $3.var_type); $$.value = $1.value / $3.value;
                                 } else { printErrorMessage("/", $1.var_type, $3.var_type); return -1; } }
 
       | MINUS expr %prec UMINUS { if(typesAreCorrect($2.var_type, 0, UMINUS)) {
@@ -151,8 +198,8 @@ expr  : O_PAR expr C_PAR      { $$.var_type = $2.var_type; $$.value = $2.value; 
                                   yyerror(buffer);
                                   return -1; } }
       | BOOL_VAL              { $$.var_type = 0; $$.value = $1; }
-      | FLOAT_VAL             { printf("Recognized float value\n"); $$.var_type = 2; $$.value = $1; }
-      | INT_VAL               { printf("Recognized integer value\n"); $$.var_type = 1; $$.value = $1; }
+      | FLOAT_VAL             { $$.var_type = 2; $$.value = $1; }
+      | INT_VAL               { $$.var_type = 1; $$.value = $1; }
       ;
 %%
 
@@ -163,5 +210,5 @@ int main() {
       if(code == 0)
             printf("Successfully parsed!\n");
       else
-            printf("Error!\n");
+            printf("Parsing Error!\n");
 }
