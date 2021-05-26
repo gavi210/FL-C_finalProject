@@ -7,7 +7,7 @@ int yylex();
 
 %union{
     int intType;
-    char string[];
+    char* string;
 }
 
 %token <intType> INTEGERVAL INT

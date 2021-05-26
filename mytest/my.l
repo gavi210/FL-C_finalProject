@@ -10,7 +10,7 @@ int yylex();
 
 "int"                               {return INT;}
 
-[a-z]([a-z]|[0-9])*                 {yylval.string = *yytext; return VARNAME;}
+[a-z]([a-z]|[0-9])*                 {yylval.string = yytext; return VARNAME;}
 
 [0-9]+                              {yylval.intType = atoi(yytext); return INTEGERVAL;}
 
