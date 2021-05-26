@@ -29,7 +29,7 @@ expr    :   INTEGERVAL                      { $$ = $1; }
         |   expr '-' expr                   { $$ = $1 - $3; }
         ;
 
-assignment: INT VARNAME '=' INTEGERVAL      { printf("New variable %d\n", $4); }
+assignment: INT VARNAME '=' INTEGERVAL      { printf("New variable %s\n", $2); }
 
 %%
 
