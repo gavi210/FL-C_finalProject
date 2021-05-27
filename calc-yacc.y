@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "symbolTable.h"
+#include "yyfunctions.h"
 
 #define TYPE_ERROR -1
 #define BOOL_TYPE 0
@@ -13,22 +14,6 @@
 
 #define PARSING_ERROR 1
 
-// print parsing error
-int yyerror (char const *message)
-{
-  return fprintf (stderr, "%s\n", message);
-  fputs (message, stderr);
-  fputc ('\n', stderr);
-  return 0;
-}
-
-// prototype for yylex function - produced by compling lex.l file
-int yylex(void);
-
-// on EOF - stop scanning - code 1 -> wrapup reading
-int yywrap() {
-      return 1;
-}
 
 // valid data types
 char* type_name[] = {"boolean", "integer", "double"};
@@ -44,9 +29,9 @@ double defaultValue(int type) {
 }
 
 struct parse_tree_node {
-      int type;         // 0 - boolean, 1 - integer, 2 - double, -1 -error
+      int type;     
       double value;     
-      char* lexeme;    // variable name
+      char* lexeme;
 }; 
 
 // true - operands are compatible
@@ -176,13 +161,10 @@ void nodeToString(char *sym_name) {
   }
 }
 
+
+
 %}
 
-// YYSTYPE yylval - all attributes needed to capture semantic of tokens
-
-// lexeme - on id
-// value - on constant
-// pointer - on internal node
 %union {
        char* lexeme; // yytext for the identifier
        double value; // value for the token
@@ -209,6 +191,8 @@ void nodeToString(char *sym_name) {
 
 // assignment operator
 %token ASSIGN_OP
+%type <type> curly_open
+%type <type> curly_close
 
 %type <parse_tree_node_info> expr
 %type <parse_tree_node_info> stmt
@@ -233,7 +217,7 @@ stmt  :
       | stmt decl ';'   
       | stmt assign ';'        
       | stmt PRINT expr ';'   { nodeToString($3.lexeme);}
-      | stmt WHILE O_PAR expr C_PAR '{' stmt '}' ';' { if($4.type != BOOL_TYPE) return PARSING_ERROR; }
+      | stmt WHILE O_PAR expr C_PAR curly_open stmt curly_close ';' { if($4.type != BOOL_TYPE) return PARSING_ERROR; }
       | stmt ';'
       ;
 
@@ -304,11 +288,19 @@ typename : BOOLEAN      { $$ = BOOL_TYPE; }
 assign : IDENTIFIER ASSIGN_OP expr    { node* sym_node = getsym($1);  if(sym_node == 0) { printf("Var %s is not defined!\n", $1); return PARSING_ERROR; }
                                 else if(typesMatches(sym_node->type, $3.type)) { $$ = $3.type; sym_node->value = $3.value; } else return PARSING_ERROR; }
        ;
+
+curly_open : '{'       { enter_sub_table(); }
+          ;
+
+curly_close : '}'       { exit_sub_table(); }
+          ;
+
 %%
 
 #include "lex.yy.c"
 
 int main() {
+      sym_table = initialize_table();
       int code = yyparse();
       if(code == 0)
             printf("Successfully parsed!\n");

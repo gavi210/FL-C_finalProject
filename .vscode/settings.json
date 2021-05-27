@@ -1,0 +1,7 @@
+{
+  "files.associations": {
+    "*.py": "python",
+    "__config": "cpp",
+    "algorithm": "cpp"
+  }
+}

@@ -9,7 +9,7 @@ struct node
   double value;             /* value hold by the variable           */
   struct node *sub_table;  /* subscope */
   struct node *prev;        /* pointer to previous inserted node    */
-  struct node *next; 
+  //struct node *next; 
   struct node *parent;
 };
 
@@ -25,7 +25,7 @@ node * initialize_table() {
   default_table->parent = (node *)0;
   default_table->prev = (node *)0;
   default_table->sub_table = (node *)0;
-  default_table->next = (node *)0;
+  //default_table->next = (node *)0;
 
   return default_table;
 }
@@ -41,7 +41,7 @@ void enter_sub_table() {
 // 0 - successfully exited, -1 - error
 int exit_sub_table() {
   if(sym_table->parent == (node *)0) { // trying exiting from default table - parsing error 
-    print("Trying exiting from default symbol table... parsing error!\n");
+    printf("Trying exiting from default symbol table... parsing error!\n");
     return -1;
   }
   sym_table = sym_table->parent; // switch back to parent
@@ -62,9 +62,9 @@ void putsym (char *sym_name, int sym_type, double sym_value)
   new_node->parent = sym_table->parent;
   new_node->prev = (node *)sym_table;
   new_node->sub_table = (node *)0;
-  new_node->next = (node *)0; // empty next 
+  //new_node->next = (node *)0; // empty next 
 
-  sym_table->next = new_node;
+  //sym_table->next = new_node;
 
   sym_table = new_node; // update pointer to last inserted node
 }
@@ -103,7 +103,6 @@ bool already_decleared_in_scope(char *sym_name) {
   return 0 - successfully inserted, -1 - error since name already in use
 */
 int insert_variable (char *sym_name, int sym_type, double sym_value) {  
-
   // verifies whether the sym_name is currently available
   if (already_decleared_in_scope(sym_name))  {
     // name in use - return error - duplicate variable
@@ -111,6 +110,7 @@ int insert_variable (char *sym_name, int sym_type, double sym_value) {
     return -1; 
   }
   else { 
+    
     putsym (sym_name, sym_type, sym_value);
     return 0;
   }
