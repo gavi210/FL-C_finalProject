@@ -36,6 +36,9 @@ char FLOAT_TYPE = 2;
 %token <string> VARNAME
 %token <value> DOUBLEVAL INTEGERVAL
 
+%token '(' ')'
+%token O_PAR C_PAR
+
 %type <value> expr assignment
 
 %left '+' '-'
@@ -48,7 +51,8 @@ program :   program expr '\n'               { printf("%d\n", $2.ival); }
         |
         ;
 
-expr    :   expr '+' expr                   { $$.ival = $1.ival + $3.ival; }
+expr    :   O_PAR expr C_PAR                    { $$.ival = $2.ival; }
+        |   expr '+' expr                   { $$.ival = $1.ival + $3.ival; }
         |   expr '-' expr                   { $$.ival = $1.ival - $3.ival; }
         |   DOUBLEVAL                       { $$.type = '2'; $$.dval = $1.dval; }
         |   INTEGERVAL                      { $$.type = '1'; $$.ival = $1.ival; }
