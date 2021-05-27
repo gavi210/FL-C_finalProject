@@ -52,12 +52,18 @@ program :   program expr '\n'               { printf("%d\n", $2.ival); }
 
 expr    :   expr '+' expr                   { $$.ival = $1.ival + $3.ival; }
         |   expr '-' expr                   { $$.ival = $1.ival - $3.ival; }
-        |   DOUBLEVAL                       { $$.dval = $1.dval; }
-        |   INTEGERVAL                      { $$.ival = $1.ival; }
+        |   DOUBLEVAL                       { $$.type = '2'; $$.dval = $1.dval; }
+        |   INTEGERVAL                      { $$.type = '1'; $$.ival = $1.ival; }
         ;
 
-assignment: INT VARNAME '=' expr      { $$.type = '1'; $$.name = strdup($2); $$.ival = $4.ival; }
-        |   DOUBLE VARNAME '=' expr    { $$.type = '2'; $$.name = strdup($2); $$.dval = $4.dval; }
+assignment: INT VARNAME '=' expr        { if($4.type == '1') 
+                                            {$$.type = '1'; $$.name = strdup($2); $$.ival = $4.ival;}
+                                          else{ yyerror ("syntax error"); return 1;}
+                                        }
+        |   DOUBLE VARNAME '=' expr     { if($4.type == '2') 
+                                            {$$.type = '2'; $$.name = strdup($2); $$.dval = $4.dval; }
+                                          else{ yyerror ("syntax error"); return 1;}
+                                        }
         ;
 
 %%
