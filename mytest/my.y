@@ -22,8 +22,6 @@ void addSymbol(number symbol);
 void addSymbolInt(char *name, int value);
 void addSymbolDouble(char *name, double value);
 
-
-
 char INT_TYPE = 1;
 char FLOAT_TYPE = 2;
 
