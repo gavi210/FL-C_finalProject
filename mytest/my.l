@@ -1,5 +1,15 @@
 %{
 
+struct number{
+    union{
+        int ival;
+        double dval;
+    };
+    char type;
+    char *name;
+};
+
+
 #include "y.tab.h"
 void yyerror (char *s);
 int yylex();
@@ -24,9 +34,9 @@ IDENTIFIER    {LETTER}({LETTER}|{DIGIT})*
 
 {IDENTIFIER}                        {yylval.string = strdup(yytext); return VARNAME;}
 
-{INT_NUM}[\.]{INT_NUM}              {printf("%f", atof(yytext)); yylval.doubleType = atof(yytext); return DOUBLEVAL;}
+{INT_NUM}[\.]{INT_NUM}              {yylval.value.dval = atof(yytext); return DOUBLEVAL;}
 
-{INT_NUM}                           {yylval.intType = atoi(yytext); return INTEGERVAL;}
+{INT_NUM}                           {yylval.value.ival = atoi(yytext); return INTEGERVAL;}
 
 [-+=\n]                             return *yytext;
 
