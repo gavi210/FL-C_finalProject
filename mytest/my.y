@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <math.h>
 
 /* symbl table implementation */
 
@@ -18,9 +19,16 @@ typedef struct number number;
 
 int yyerror (char *s);
 int yylex();
+
 void addSymbol(number symbol);
+void printRes(number symbol);
 void addSymbolInt(char *name, int value);
 void addSymbolDouble(char *name, double value);
+
+number computePlusExpression(number sym1, number sym2);
+number computeMinusExpression(number sym1, number sym2);
+number computeMultExpression(number sym1, number sym2);
+number computeDivExpression(number sym1, number sym2);
 
 char INT_TYPE = 1;
 char FLOAT_TYPE = 2;
@@ -43,17 +51,26 @@ char FLOAT_TYPE = 2;
 
 %left '+' '-'
 %left '*' '/'
+%left '('
+%right ')'
 
 %%
 
-program :   program expr '\n'               { printf("%d\n", $2.ival); }
+program :   program expr '\n'               { printRes($2); }
         |   program assignment '\n'         { addSymbol($2); }
         |
         ;
 
-expr    :   O_PAR expr C_PAR                    { $$.ival = $2.ival; }
-        |   expr '+' expr                   { $$.ival = $1.ival + $3.ival; }
-        |   expr '-' expr                   { $$.ival = $1.ival - $3.ival; }
+expr    :   '(' expr ')'                    { 
+                                                $$.type = $2.type;
+                                                if($2.type == '1'){$$.ival = $2.ival;}
+                                                else{ $$.dval = $2.dval;}
+                                            }
+
+        |   expr '+' expr                   { $$ = computePlusExpression($1, $3); }
+        |   expr '-' expr                   { $$ = computeMinusExpression($1, $3); }
+        |   expr '*' expr                   { $$ = computeMultExpression($1, $3); }
+        |   expr '/' expr                   { $$ = computeDivExpression($1, $3); }
         |   DOUBLEVAL                       { $$.type = '2'; $$.dval = $1.dval; }
         |   INTEGERVAL                      { $$.type = '1'; $$.ival = $1.ival; }
         ;
@@ -74,6 +91,103 @@ int main(void){
     yyparse();
     return 0;
 }
+
+void printRes(number symbol){
+    if(symbol.type == '1'){
+        printf("type: %c, name: %s, value: %hi\n", symbol.type, symbol.name, symbol.ival);
+    }else{
+        printf("type: %c, name: %s, value: %f\n", symbol.type, symbol.name, symbol.dval);
+    }
+}
+
+number computePlusExpression(number sym1, number sym2){
+
+    number newNumber;
+
+    newNumber.type = fmax(sym1.type, sym2.type);
+
+    if(newNumber.type == '1'){
+        newNumber.ival = sym1.ival + sym2.ival;
+    }else{
+        if(sym1.type == '1'){
+            newNumber.dval = sym1.ival + sym2.dval;
+        }
+        else if(sym2.type == '1'){
+            newNumber.dval = sym1.dval + sym2.ival;
+        }
+        else{
+            newNumber.dval = sym1.dval + sym2.dval;
+        }
+    }
+    return newNumber;
+}
+
+number computeMinusExpression(number sym1, number sym2){
+
+    number newNumber;
+
+    newNumber.type = fmax(sym1.type, sym2.type);
+
+    if(newNumber.type == '1'){
+        newNumber.ival = sym1.ival - sym2.ival;
+    }else{
+        if(sym1.type == '1'){
+            newNumber.dval = sym1.ival - sym2.dval;
+        }
+        else if(sym2.type == '1'){
+            newNumber.dval = sym1.dval - sym2.ival;
+        }
+        else{
+            newNumber.dval = sym1.dval - sym2.dval;
+        }
+    }
+    return newNumber;
+}
+
+number computeMultExpression(number sym1, number sym2){
+
+    number newNumber;
+
+    newNumber.type = fmax(sym1.type, sym2.type);
+
+    if(newNumber.type == '1'){
+        newNumber.ival = sym1.ival * sym2.ival;
+    }else{
+        if(sym1.type == '1'){
+            newNumber.dval = sym1.ival * sym2.dval;
+        }
+        else if(sym2.type == '1'){
+            newNumber.dval = sym1.dval * sym2.ival;
+        }
+        else{
+            newNumber.dval = sym1.dval * sym2.dval;
+        }
+    }
+    return newNumber;
+}
+
+number computeDivExpression(number sym1, number sym2){
+
+    number newNumber;
+
+    newNumber.type = fmax(sym1.type, sym2.type);
+
+    if(newNumber.type == '1'){
+        newNumber.ival = sym1.ival / sym2.ival;
+    }else{
+        if(sym1.type == '1'){
+            newNumber.dval = sym1.ival / sym2.dval;
+        }
+        else if(sym2.type == '1'){
+            newNumber.dval = sym1.dval / sym2.ival;
+        }
+        else{
+            newNumber.dval = sym1.dval / sym2.dval;
+        }
+    }
+    return newNumber;
+}
+
 
 void addSymbol(number symbol){
     if(symbol.type == '1'){

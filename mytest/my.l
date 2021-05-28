@@ -1,5 +1,7 @@
 %{
 
+#include <math.h>
+
 struct number{
     union{
         int ival;
@@ -8,7 +10,6 @@ struct number{
     char type;
     char *name;
 };
-
 
 #include "y.tab.h"
 void yyerror (char *s);
@@ -38,7 +39,7 @@ IDENTIFIER    {LETTER}({LETTER}|{DIGIT})*
 
 {INT_NUM}                           {yylval.value.ival = atoi(yytext); return INTEGERVAL;}
 
-[-+=\n]                             return *yytext;
+[-+*/=()\n]                         return *yytext;
 
 [ \t]                               ; /*skip whitespaces*/
 
@@ -49,8 +50,6 @@ IDENTIFIER    {LETTER}({LETTER}|{DIGIT})*
 int yywrap(void) {
     return 1;
 }
-
-/* [0-9]+.[0-9]+                     {yylval = atod(yytext); return DOUBLEVAL;} */
 
 /*"bool"                              {return BOOL;}
 "double"                            {return DOUBLE;}*/
