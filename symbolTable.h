@@ -64,10 +64,8 @@ void putsym (char *sym_name, int sym_type, double sym_value)
 
 // pointer to node, (node *)0 pointer if element not found
 node * getsym (char *sym_name) {
-  printf("Searching for %s!\n", sym_name);
   node *curr_node = sym_table;
   while(curr_node->parent != (node *)0 || curr_node->prev != (node *)0) {
-    printf("Current name: %s!\n", curr_node->name);
     // head of the list
     //if(curr_node->name == (node *)0)
     //  curr_node = curr_node->parent;
