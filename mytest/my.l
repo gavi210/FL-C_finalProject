@@ -6,6 +6,7 @@ struct number{
     union{
         int ival;
         double dval;
+        int bval;
     };
     char type;
     char *name;
@@ -22,7 +23,6 @@ void addSymbolDouble(char *name, int value);
 DIGIT         [0-9]
 INT_NUM       {DIGIT}+
 FLOAT_NUM     {DIGIT}+\.{DIGIT}+
-BOOL_VAL      true|false
 
 TYPE_NAME      int|double|boolean
 
@@ -31,13 +31,27 @@ IDENTIFIER    {LETTER}({LETTER}|{DIGIT})*
 
 %%
 
-{TYPE_NAME}                         { if (strcmp(yytext,"int") == 0) return INT; else if (strcmp(yytext,"double") == 0) return DOUBLE; }
+print                               { return PRINT; }
+
+true                                {yylval.value.bval = 1; return BOOLVAL; }
+false                               {yylval.value.bval = 0; return BOOLVAL; }
+
+and                                 { return AND; }
+or                                  { return OR; }
+not                                 { return NOT; }
+
+{TYPE_NAME}                         { if (strcmp(yytext,"int") == 0) return INT; else if (strcmp(yytext,"double") == 0) return DOUBLE; else return BOOLEAN; }
 
 {IDENTIFIER}                        {yylval.string = strdup(yytext); return VARNAME;}
 
 {INT_NUM}[\.]{INT_NUM}              {yylval.value.dval = atof(yytext); return DOUBLEVAL;}
 
 {INT_NUM}                           {yylval.value.ival = atoi(yytext); return INTEGERVAL;}
+
+"<="                                  { return LTOE; }
+"=>"                                  { return GTOE; }
+">"                                   { return GT; }
+"<"                                  { return LT; }
 
 [-+*/=()\n]                         return *yytext;
 
@@ -50,6 +64,3 @@ IDENTIFIER    {LETTER}({LETTER}|{DIGIT})*
 int yywrap(void) {
     return 1;
 }
-
-/*"bool"                              {return BOOL;}
-"double"                            {return DOUBLE;}*/
