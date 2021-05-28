@@ -3,11 +3,7 @@
 #include <math.h>
 
 struct number{
-    union{
-        int ival;
-        double dval;
-        int bval;
-    };
+    double value;
     char type;
     char *name;
 };
@@ -15,8 +11,7 @@ struct number{
 #include "y.tab.h"
 void yyerror (char *s);
 int yylex();
-void addSymbolInt(char *name, int value);
-void addSymbolDouble(char *name, int value);
+void addSymbol(char *name, int value);
 
 %}
 
@@ -33,8 +28,8 @@ IDENTIFIER    {LETTER}({LETTER}|{DIGIT})*
 
 print                               { return PRINT; }
 
-true                                {yylval.value.bval = 1; return BOOLVAL; }
-false                               {yylval.value.bval = 0; return BOOLVAL; }
+true                                {yylval.value.value = 1; return BOOLVAL; }
+false                               {yylval.value.value = 0; return BOOLVAL; }
 
 and                                 { return AND; }
 or                                  { return OR; }
@@ -44,14 +39,15 @@ not                                 { return NOT; }
 
 {IDENTIFIER}                        {yylval.string = strdup(yytext); return VARNAME;}
 
-{INT_NUM}[\.]{INT_NUM}              {yylval.value.dval = atof(yytext); return DOUBLEVAL;}
+{INT_NUM}[\.]{INT_NUM}              {yylval.value.value = atof(yytext); return DOUBLEVAL;}
 
-{INT_NUM}                           {yylval.value.ival = atoi(yytext); return INTEGERVAL;}
+{INT_NUM}                           {yylval.value.value = atoi(yytext); return INTEGERVAL;}
 
-"<="                                  { return LTOE; }
-"=>"                                  { return GTOE; }
-">"                                   { return GT; }
-"<"                                  { return LT; }
+"=="                                { return EQUAL; }    
+"<="                                { return LTOE; }
+"=>"                                { return GTOE; }
+">"                                 { return GT; }
+"<"                                 { return LT; }
 
 [-+*/=()\n]                         return *yytext;
 

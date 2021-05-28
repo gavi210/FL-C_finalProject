@@ -12,8 +12,7 @@ int yyerror (char *s);
 int yylex();
 
 void printRes(number symbol);
-void addSymbolInt(char *name, int value);
-void addSymbolDouble(char *name, double value);
+void addSymbol(char *name, int value);
 
 number computePlusExpression(number sym1, number sym2);
 number computeMinusExpression(number sym1, number sym2);
@@ -21,9 +20,7 @@ number computeMultExpression(number sym1, number sym2);
 number computeDivExpression(number sym1, number sym2);
 
 int isGreaterThan(number sym1, number sym2);
-
-char INT_TYPE = 1;
-char FLOAT_TYPE = 2;
+int isGreaterThanOrEqual(number sym1, number sym2);
 
 %}
 
@@ -34,7 +31,7 @@ char FLOAT_TYPE = 2;
 
 %token INT DOUBLE BOOLEAN PRINT
 
-%token AND OR GTOE LTOE GT LT
+%token AND OR GTOE LTOE GT LT EQUAL
 
 %token <string> VARNAME
 %token <value> DOUBLEVAL INTEGERVAL BOOLVAL
@@ -62,29 +59,33 @@ program :   program assignment '\n'         { insert_variable($2); }
 
 expr    :   '(' expr ')'                    { 
                                                 $$.type = $2.type;
-                                                if($2.type == '1'){$$.ival = $2.ival;}
-                                                else{ $$.dval = $2.dval;}
+                                                if($2.type == '1'){$$.value = $2.value;}
+                                                else{ $$.value = $2.value;}
                                             }
         |   expr '+' expr                   { $$ = computePlusExpression($1, $3); }
         |   expr '-' expr                   { $$ = computeMinusExpression($1, $3); }
         |   expr '*' expr                   { $$ = computeMultExpression($1, $3); }
         |   expr '/' expr                   { $$ = computeDivExpression($1, $3); }
-        |   DOUBLEVAL                       { $$.type = '2'; $$.dval = $1.dval; }
-        |   INTEGERVAL                      { $$.type = '1'; $$.ival = $1.ival; }
+        |   DOUBLEVAL                       { $$.type = '2'; $$.value = $1.value; }
+        |   INTEGERVAL                      { $$.type = '1'; $$.value = $1.value; }
         |   VARNAME                         { if(has_been_decleared($1)){ $$ = getVariable($1); } else {yyerror ("undeclared variable"); return 1;} }
         ;
 
 boolexpr:   '(' boolexpr ')'                { $$ = $2; }
-        |   expr GT expr                    { $$.type = 0; $$.bval = isGreaterThan($1, $3); }  
-        |   boolexpr AND boolexpr           { $$.bval = $1.bval * $3.bval; }
-        |   boolexpr OR boolexpr            { $$.bval = fmax($1.bval, $3.bval); }
-        |   NOT boolexpr                    { $$ = $2; $$.bval = 1 - $2.bval; }
-        |   BOOLVAL                         { $$.type = '0'; $$.bval = $1.bval; }
+        |   expr GT expr                    { $$.type = '0'; $$.value = isGreaterThan($1, $3); }
+        |   expr LT expr                    { $$.type = '0'; $$.value = isGreaterThan($3, $1); }
+        |   expr GTOE expr                  { $$.type = '0'; $$.value = isGreaterThanOrEqual($1, $3); }
+        |   expr LTOE expr                  { $$.type = '0'; $$.value = isGreaterThanOrEqual($3, $1); }
+        |   expr EQUAL expr                 { $$.type = '0'; if($1.value == $3.value) { $$.value = 1; } else { $$.value = 0; }}
+        |   boolexpr AND boolexpr           { $$.value = $1.value * $3.value; }
+        |   boolexpr OR boolexpr            { $$.value = fmax($1.value, $3.value); }
+        |   NOT boolexpr                    { $$ = $2; $$.value = 1 - $2.value; }
+        |   BOOLVAL                         { $$.type = '0'; $$.value = $1.value; }
         ;
 
 assignment: INT VARNAME '=' expr            { 
                                                 if($4.type == '1') {
-                                                        $$.type = '1'; $$.name = strdup($2); $$.ival = $4.ival;
+                                                        $$.type = '1'; $$.name = strdup($2); $$.value = $4.value;
                                                 }
                                                 else{ 
                                                     yyerror ("syntax error"); return 1;
@@ -92,7 +93,7 @@ assignment: INT VARNAME '=' expr            {
                                             }
         |   DOUBLE VARNAME '=' expr         { 
                                                 if($4.type == '2') {
-                                                    $$.type = '2'; $$.name = strdup($2); $$.dval = $4.dval; 
+                                                    $$.type = '2'; $$.name = strdup($2); $$.value = $4.value; 
                                                 }
                                                 else{
                                                     yyerror ("syntax error"); return 1;
@@ -100,7 +101,7 @@ assignment: INT VARNAME '=' expr            {
                                             }
         |   BOOLEAN VARNAME '=' boolexpr    {
                                                 if($4.type == '0') {
-                                                    $$.type = '0'; $$.name = strdup($2); $$.bval = $4.bval; 
+                                                    $$.type = '0'; $$.name = strdup($2); $$.value = $4.value; 
                                                 }
                                                 else{
                                                     yyerror ("syntax error"); return 1;
@@ -118,23 +119,38 @@ int main(void){
 void printRes(number symbol){
 
     if(symbol.type == '0'){
-        if(symbol.bval == 0){
+        if(symbol.value == 0){
             printf("false\n");
         }else{
             printf("true\n");
         }
     }
     else if(symbol.type == '1'){
-        printf("%i\n", symbol.ival);
+        printf("%i\n", (int) symbol.value);
     }else{
-        printf("%f\n",symbol.dval);
+        printf("%f\n", symbol.value);
     }
 }
 
 int isGreaterThan(number sym1, number sym2){
-    printf("1 %f 2 %f\n", sym2.dval, sym2.dval);
-    printf("1 %i 2 %i\n", sym2.ival, sym2.ival);
-    return 0;
+    double max = fmax(sym1.value, sym2.value);
+    if(max == sym1.value){
+        return 1;
+    }else{
+        return 0;
+    }
+}
+
+int isGreaterThanOrEqual(number sym1, number sym2){
+    if(sym1.value == sym2.value){
+        return 1;
+    }
+    double max = fmax(sym1.value, sym2.value);
+    if(max == sym1.value){
+        return 1;
+    }else{
+        return 0;
+    }
 }
 
 number computePlusExpression(number sym1, number sym2){
@@ -144,16 +160,16 @@ number computePlusExpression(number sym1, number sym2){
     newNumber.type = fmax(sym1.type, sym2.type);
 
     if(newNumber.type == '1'){
-        newNumber.ival = sym1.ival + sym2.ival;
+        newNumber.value = sym1.value + sym2.value;
     }else{
         if(sym1.type == '1'){
-            newNumber.dval = sym1.ival + sym2.dval;
+            newNumber.value = sym1.value + sym2.value;
         }
         else if(sym2.type == '1'){
-            newNumber.dval = sym1.dval + sym2.ival;
+            newNumber.value = sym1.value + sym2.value;
         }
         else{
-            newNumber.dval = sym1.dval + sym2.dval;
+            newNumber.value = sym1.value + sym2.value;
         }
     }
     return newNumber;
@@ -166,16 +182,16 @@ number computeMinusExpression(number sym1, number sym2){
     newNumber.type = fmax(sym1.type, sym2.type);
 
     if(newNumber.type == '1'){
-        newNumber.ival = sym1.ival - sym2.ival;
+        newNumber.value = sym1.value - sym2.value;
     }else{
         if(sym1.type == '1'){
-            newNumber.dval = sym1.ival - sym2.dval;
+            newNumber.value = sym1.value - sym2.value;
         }
         else if(sym2.type == '1'){
-            newNumber.dval = sym1.dval - sym2.ival;
+            newNumber.value = sym1.value - sym2.value;
         }
         else{
-            newNumber.dval = sym1.dval - sym2.dval;
+            newNumber.value = sym1.value - sym2.value;
         }
     }
     return newNumber;
@@ -188,16 +204,16 @@ number computeMultExpression(number sym1, number sym2){
     newNumber.type = fmax(sym1.type, sym2.type);
 
     if(newNumber.type == '1'){
-        newNumber.ival = sym1.ival * sym2.ival;
+        newNumber.value = sym1.value * sym2.value;
     }else{
         if(sym1.type == '1'){
-            newNumber.dval = sym1.ival * sym2.dval;
+            newNumber.value = sym1.value * sym2.value;
         }
         else if(sym2.type == '1'){
-            newNumber.dval = sym1.dval * sym2.ival;
+            newNumber.value = sym1.value * sym2.value;
         }
         else{
-            newNumber.dval = sym1.dval * sym2.dval;
+            newNumber.value = sym1.value * sym2.value;
         }
     }
     return newNumber;
@@ -210,16 +226,16 @@ number computeDivExpression(number sym1, number sym2){
     newNumber.type = fmax(sym1.type, sym2.type);
 
     if(newNumber.type == '1'){
-        newNumber.ival = sym1.ival / sym2.ival;
+        newNumber.value = sym1.value / sym2.value;
     }else{
         if(sym1.type == '1'){
-            newNumber.dval = sym1.ival / sym2.dval;
+            newNumber.value = sym1.value / sym2.value;
         }
         else if(sym2.type == '1'){
-            newNumber.dval = sym1.dval / sym2.ival;
+            newNumber.value = sym1.value / sym2.value;
         }
         else{
-            newNumber.dval = sym1.dval / sym2.dval;
+            newNumber.value = sym1.value / sym2.value;
         }
     }
     return newNumber;
