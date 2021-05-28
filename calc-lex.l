@@ -16,6 +16,8 @@ TYPE_NAME      int|double|boolean
 
 PRINT_KEYWORD print
 WHILE_KEYWORD while
+IF_KEYWORD    if
+ELSE_KEYWORD  else
 
 LETTER        [a-zA-Z]
 IDENTIFIER    {LETTER}({LETTER}|{DIGIT})*
@@ -33,6 +35,8 @@ IDENTIFIER    {LETTER}({LETTER}|{DIGIT})*
 
 {PRINT_KEYWORD} { return PRINT; }
 {WHILE_KEYWORD} { return WHILE; }
+{IF_KEYWORD}    { return IF; }
+{ELSE_KEYWORD}  { return ELSE; }
 {IDENTIFIER}  { yylval.lexeme = strdup(yytext); return IDENTIFIER; }
 
 "+"     { return PLUS; }

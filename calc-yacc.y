@@ -5,90 +5,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "symbolTable.h"
-#include "yyfunctions.h"
-
-#define TYPE_ERROR -1
-#define BOOL_TYPE 0
-#define INT_TYPE 1
-#define DOUBLE_TYPE 2
+#include "yydeclarations.h"
+#include "typeSystem.h"
+#include "outputMessages.h"
 
 #define PARSING_ERROR 1
-
-
-// valid data types
-char* type_name[] = {"boolean", "integer", "double"};
-
-// returns default value given the type
-double defaultValue(int type) {
-  if(type == BOOL_TYPE)
-    return 1.0;
-  else if(type == INT_TYPE || type == DOUBLE_TYPE)
-    return 0.0;
-  else 
-    return -1.0;
-}
-
-struct parse_tree_node {
-      int type;     
-      double value;     
-      char* lexeme;
-}; 
-
-// true - operands are compatible
-// false - operands not compatible
-bool typesAreCorrect(int type1, int type2, int operator) {
-  // binary arithmetic operators
-  if(operator == PLUS || operator == MINUS || operator == MOLT || operator == DIV) {
-    if(type1 != 0 && type2 != 0) // both numeric
-      return true;
-    else
-      return false;
-  }
-  // unary arithmetic operators
-  else if(operator == UMINUS) {
-    if(type1 != 0) // look only at the first one, second meaningless
-      return true;
-    else
-      return false;
-  }
-  // binary boolean operators
-  else if(operator == BIGGER_THAN || operator == BIGGER_EQ_THAN || operator == SMALLER_THAN || operator == SMALLER_EQ_THAN || operator == EQUAL_TO || operator == NOT_EQUAL_TO) {
-    if(type1 != 0 && type2 != 0)
-      return true;
-    else
-      return false;
-  }
-  // unary boolean operators
-  else if(operator == NOT) {
-    if(type1 == 0) // look only at the first one, second meaningless
-      return true;
-    else
-      return false; 
-  }
-
-  // other cases return false
-  return false;
-};
-
-// boolean operators - must be both boolean 
-bool typesMatches(int type1, int type2) {
-  if(type1 == BOOL_TYPE || type2 == BOOL_TYPE) { // at least on boolean 
-    if(type1 == type2)  {// even the other must be boolean
-      printf("Types matches!\n");
-      return true;
-    }
-    else 
-      return false;
-  }
-  else if(type1 == type2) { // equal - both int or both double
-    return true;
-  }
-  else if(type1 > type2) { // first double - other int
-    return true;
-  }
-  else 
-    return false; // first int - other double
-}
+#define VOID -2  // as long as stmt type is VOID - no paring error found
 
 // on type not compatible - prompt the user error reason
 void printErrorMessage(char* operator, int type1, int type2) {
@@ -99,69 +21,11 @@ void printErrorMessage(char* operator, int type1, int type2) {
   return;
 }
 
-// output adapts to variable type
-void printResult(int type, double value) {
-  char buffer[1024];
-  if(type == 0) // boolean
-    snprintf(buffer, sizeof(buffer), "Type: %s, Value: %d\n", type_name[type], value!=0.0);
-  else if(type == 1) // integer
-    snprintf(buffer, sizeof(buffer), "Type: %s, Value: %d\n", type_name[type], (int) value);
-  else // double
-    snprintf(buffer, sizeof(buffer), "Type: %s, Value: %f\n", type_name[type], value);
-
-  printf("%s\n", buffer);
-  return;
-}
-
-// return max value from a and b - if int (1) and duoble (2) - returns double (2)
-int max(int a, int b) {
-
-  if(a >= b)
-    return a;
-  else 
-    return b;
-}
-
-// return the correct value for the operation - apply type cohercion 
-double getValue(int operator, int type, double val1, double val2) {
-  double result;
-  if(operator == DIV) {
-    if(type == 1) 
-      result = (int) val1 / (int) val2;
-    else
-      result = val1 / val2;
-  }
-  else if(operator == MOLT) {
-    result = val1 * val2;
-  } 
-  else if(operator == PLUS) {
-    result = val1 + val2;
-  }
-  else
-    result = val1 - val2;
-
-  return result;
-}
-
-void nodeToString(char *sym_name) {
-  node *table_entry = getsym(sym_name);
-  if (table_entry == 0)  {
-    printf("Variable %s not defined!", sym_name); 
-  }
-  else { 
-    char buffer[1024];
-    if(table_entry->type == 0) // boolean
-      snprintf(buffer, sizeof(buffer), "Name: %s, Type: %s, Value: %d\n", sym_name, type_name[table_entry->type], table_entry->value!=0.0);
-    else if(table_entry->type == 1) // integer
-      snprintf(buffer, sizeof(buffer), "Name: %s, Type: %s, Value: %d\n", sym_name, type_name[table_entry->type], (int) table_entry->value);
-    else // double
-      snprintf(buffer, sizeof(buffer), "Name: %s, Type: %s, Value: %f\n", sym_name, type_name[table_entry->type], table_entry->value);
-
-  printf("%s\n", buffer);
-  }
-}
-
-
+struct parse_tree_node {
+      int type;     
+      double value;     
+      char* lexeme;
+}; 
 
 %}
 
@@ -185,20 +49,36 @@ void nodeToString(char *sym_name) {
 %token <type> INT
 %token <type> DOUBLE
 %token <type> WHILE
+%token <type> IF
+%token <type> ELSE
 
 // print content of a variable
-%token PRINT
+%token <type> PRINT
 
 // assignment operator
 %token ASSIGN_OP
-%type <type> curly_open
-%type <type> curly_close
+
+%type <type> enter_sub_scope
+%type <type> exit_sub_scope
+
+%type <parse_tree_node_info> stmt_list
+%type <parse_tree_node_info> stmt
+%type <parse_tree_node_info> ctrl_stmt
+%type <parse_tree_node_info> cond_stmt
+%type <parse_tree_node_info> while_stmt
+%type <parse_tree_node_info> if_stmt
+%type <parse_tree_node_info> else_stmt
+%type <parse_tree_node_info> expr_stmt
 
 %type <parse_tree_node_info> expr
-%type <parse_tree_node_info> stmt
+
 %type <type> decl
 %type <type> typename
 %type <type> assign
+
+%nonassoc ENTER_SUB_SCOPE EXIT_SUB_SCOPE
+
+%nonassoc INT_VAL FLOAT_VAL BOOL_VAL IDENTIFIER BOOLEAN INT DOUBLE WHILE IF PRINT ';' '}' 
 
 %right ASSIGN_OP
 %left BIGGER_THAN SMALLER_THAN EQUAL_TO NOT_EQUAL_TO BIGGER_EQ_THAN SMALLER_EQ_THAN
@@ -208,17 +88,47 @@ void nodeToString(char *sym_name) {
 %left C_PAR
 %right UMINUS O_PAR
 
-// scope for the language
-%start stmt
+%nonassoc IFX // gives single IF lower precedence
+%nonassoc ELSE
+
+%nonassoc STMT_LIST 
+
+%start stmt_list // scope
 
 %%
-stmt  : 
-      | stmt expr ';'         { printResult($2.type, $2.value); } 
-      | stmt decl ';'   
-      | stmt assign ';'        
-      | stmt PRINT expr ';'   { nodeToString($3.lexeme);}
-      | stmt WHILE O_PAR expr C_PAR curly_open stmt curly_close ';' { if($4.type != BOOL_TYPE) return PARSING_ERROR; }
-      | stmt ';'
+
+stmt_list : 
+      | stmt_list stmt ';' %prec STMT_LIST { $$.type = VOID; }
+      ;
+
+stmt  :                     { $$.type = VOID; }
+      | PRINT expr          { nodeToString($2.lexeme); $$.type = VOID; }
+      | ctrl_stmt           { $$.type = VOID; }
+      | expr_stmt           { $$.type = VOID; printf("Read declaration pt2\n"); }
+      ;
+
+ctrl_stmt :  while_stmt     { $$.type = VOID; }   
+      |  cond_stmt          { $$.type = VOID; }
+      ;
+
+while_stmt :  WHILE expr enter_sub_scope stmt ';' exit_sub_scope           { if($2.type != BOOL_TYPE) return PARSING_ERROR; else $$.type = VOID; }
+      |  WHILE expr '{' enter_sub_scope stmt_list exit_sub_scope '}'  { if($2.type != BOOL_TYPE) return PARSING_ERROR; else $$.type = VOID; }
+      ;
+
+cond_stmt : if_stmt %prec IFX                                         { $$.type = VOID; }
+      |  if_stmt else_stmt                                            { $$.type = VOID; }
+      ;
+
+if_stmt : IF expr enter_sub_scope stmt ';' exit_sub_scope        { if($2.type != BOOL_TYPE) return PARSING_ERROR; else $$.type = VOID; }
+      |  IF expr '{' enter_sub_scope stmt_list exit_sub_scope '}'     %prec IFX  { if($2.type != BOOL_TYPE) return PARSING_ERROR; else $$.type = VOID; }
+      ;
+
+else_stmt : ELSE enter_sub_scope stmt ';' exit_sub_scope              { $$.type = VOID; }
+      | ELSE '{' enter_sub_scope stmt_list exit_sub_scope '}'         { $$.type = VOID; }
+
+expr_stmt : expr                { printResult($1.type, $1.value); $$.type = VOID; } 
+      | decl                    { $$.type = VOID; printf("Read declaration!\n"); }
+      | assign                  { $$.type = VOID; }
       ;
 
 expr  : O_PAR expr C_PAR      { $$.type = $2.type; $$.value = $2.value; }
@@ -289,10 +199,10 @@ assign : IDENTIFIER ASSIGN_OP expr    { node* sym_node = getsym($1);  if(sym_nod
                                 else if(typesMatches(sym_node->type, $3.type)) { $$ = $3.type; sym_node->value = $3.value; } else return PARSING_ERROR; }
        ;
 
-curly_open : '{'       { enter_sub_table(); }
+enter_sub_scope : %prec ENTER_SUB_SCOPE    { enter_sub_table(); }
           ;
 
-curly_close : '}'       { exit_sub_table(); }
+exit_sub_scope :  %prec EXIT_SUB_SCOPE     { exit_sub_table(); }
           ;
 
 %%

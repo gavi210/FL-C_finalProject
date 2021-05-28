@@ -2,18 +2,15 @@
 #include <string.h>
 #include <stdio.h>
 
-struct node
+typedef struct node
 {
   char *name;               /* name of the variable                 */
   int type;                 /* 0 - boolean, 1 - integer, 2 - double */
   double value;             /* value hold by the variable           */
-  struct node *sub_table;  /* subscope */
+  struct node *sub_table;   /* subscope */
   struct node *prev;        /* pointer to previous inserted node    */
-  //struct node *next; 
   struct node *parent;
-};
-
-typedef struct node node;   /* avoid writing struct to decleare pointer */
+} node;
 
 node *sym_table; // pointer used to access the current symbol table - updated during parsing
 
@@ -25,7 +22,6 @@ node * initialize_table() {
   default_table->parent = (node *)0;
   default_table->prev = (node *)0;
   default_table->sub_table = (node *)0;
-  //default_table->next = (node *)0;
 
   return default_table;
 }
@@ -33,7 +29,7 @@ node * initialize_table() {
 void enter_sub_table() {
   node * sub_table = initialize_table(); // initialize empty table
   sym_table->sub_table = sub_table;
-  sub_table->parent = sym_table; // symmtric reference
+  sub_table->parent = sym_table; // symmtric reference - only the initial node has reference to parent
 
   sym_table = sub_table;  // update pointer to sub scope
 }
@@ -59,26 +55,30 @@ void putsym (char *sym_name, int sym_type, double sym_value)
   new_node->type = sym_type;
   new_node->value = sym_value;
   // add new node as list head
-  new_node->parent = sym_table->parent;
+  new_node->parent = sym_table->parent; // nodes in the table don't have reference to parent
   new_node->prev = (node *)sym_table;
   new_node->sub_table = (node *)0;
-  //new_node->next = (node *)0; // empty next 
-
-  //sym_table->next = new_node;
 
   sym_table = new_node; // update pointer to last inserted node
 }
 
 // pointer to node, (node *)0 pointer if element not found
 node * getsym (char *sym_name) {
+  printf("Searching for %s!\n", sym_name);
   node *curr_node = sym_table;
   while(curr_node->parent != (node *)0 || curr_node->prev != (node *)0) {
-    if(strcmp (curr_node->name,sym_name) == 0) // names matches
-      return curr_node; // node found
-    else if(curr_node->prev != (node *)0)
-      curr_node = curr_node->prev;
-    else // search in the parent table
+    printf("Current name: %s!\n", curr_node->name);
+    // head of the list
+    //if(curr_node->name == (node *)0)
+    //  curr_node = curr_node->parent;
+    if(curr_node->prev == (node *)0)
       curr_node = curr_node->parent;
+    else if(strcmp (curr_node->name,sym_name) == 0) // names matches
+      return curr_node; // node found
+    else 
+      curr_node = curr_node->prev;
+
+    printf("Current name: %s!\n", curr_node->name);
   }
 
   // if here no value found
