@@ -98,20 +98,20 @@ struct parse_tree_node {
 %%
 
 stmt_list : 
-      | stmt_list stmt ';' %prec STMT_LIST { $$.type = VOID; }
+      | stmt_list stmt %prec STMT_LIST { $$.type = VOID; }
       ;
 
-stmt  :                     { $$.type = VOID; }
-      | PRINT expr          { nodeToString($2.lexeme); $$.type = VOID; }
-      | ctrl_stmt           { $$.type = VOID; }
-      | expr_stmt           { $$.type = VOID; printf("Read declaration pt2\n"); }
+stmt  : ';'                     { $$.type = VOID; }
+      | PRINT expr ';'          { nodeToString($2.lexeme); $$.type = VOID; }
+      | ctrl_stmt               { $$.type = VOID; }
+      | expr_stmt  ';'          { $$.type = VOID; printf("Read declaration pt2\n"); }
       ;
 
 ctrl_stmt :  while_stmt     { $$.type = VOID; }   
       |  cond_stmt          { $$.type = VOID; }
       ;
 
-while_stmt :  WHILE expr enter_sub_scope stmt ';' exit_sub_scope           { if($2.type != BOOL_TYPE) return PARSING_ERROR; else $$.type = VOID; }
+while_stmt :  WHILE expr enter_sub_scope stmt exit_sub_scope           { if($2.type != BOOL_TYPE) return PARSING_ERROR; else $$.type = VOID; }
       |  WHILE expr '{' enter_sub_scope stmt_list exit_sub_scope '}'  { if($2.type != BOOL_TYPE) return PARSING_ERROR; else $$.type = VOID; }
       ;
 
@@ -119,11 +119,11 @@ cond_stmt : if_stmt %prec IFX                                         { $$.type 
       |  if_stmt else_stmt                                            { $$.type = VOID; }
       ;
 
-if_stmt : IF expr enter_sub_scope stmt ';' exit_sub_scope        { if($2.type != BOOL_TYPE) return PARSING_ERROR; else $$.type = VOID; }
+if_stmt : IF expr enter_sub_scope stmt  exit_sub_scope        { if($2.type != BOOL_TYPE) return PARSING_ERROR; else $$.type = VOID; }
       |  IF expr '{' enter_sub_scope stmt_list exit_sub_scope '}'     %prec IFX  { if($2.type != BOOL_TYPE) return PARSING_ERROR; else $$.type = VOID; }
       ;
 
-else_stmt : ELSE enter_sub_scope stmt ';' exit_sub_scope              { $$.type = VOID; }
+else_stmt : ELSE enter_sub_scope stmt exit_sub_scope              { $$.type = VOID; }
       | ELSE '{' enter_sub_scope stmt_list exit_sub_scope '}'         { $$.type = VOID; }
 
 expr_stmt : expr                { printResult($1.type, $1.value); $$.type = VOID; } 
