@@ -14,11 +14,6 @@ int yylex();
 void printRes(number symbol);
 void addSymbol(char *name, int value);
 
-number computePlusExpression(number sym1, number sym2);
-number computeMinusExpression(number sym1, number sym2);
-number computeMultExpression(number sym1, number sym2);
-number computeDivExpression(number sym1, number sym2);
-
 int isGreaterThan(number sym1, number sym2);
 int isGreaterThanOrEqual(number sym1, number sym2);
 
@@ -62,10 +57,10 @@ expr    :   '(' expr ')'                    {
                                                 if($2.type == '1'){$$.value = $2.value;}
                                                 else{ $$.value = $2.value;}
                                             }
-        |   expr '+' expr                   { $$.type = fmax($1.type, $3.type);  }
-        |   expr '-' expr                   { $$ = computeMinusExpression($1, $3); }
-        |   expr '*' expr                   { $$ = computeMultExpression($1, $3); }
-        |   expr '/' expr                   { $$ = computeDivExpression($1, $3); }
+        |   expr '+' expr                   { $$.type = fmax($1.type, $3.type); $$.value = $1.value + $3.value; }
+        |   expr '-' expr                   { $$.type = fmax($1.type, $3.type); $$.value = $1.value - $3.value; }
+        |   expr '*' expr                   { $$.type = fmax($1.type, $3.type); $$.value = $1.value * $3.value; }
+        |   expr '/' expr                   { $$.type = fmax($1.type, $3.type); $$.value = $1.value / $3.value; }
         |   DOUBLEVAL                       { $$.type = '2'; $$.value = $1.value; }
         |   INTEGERVAL                      { $$.type = '1'; $$.value = $1.value; }
         |   VARNAME                         { if(has_been_decleared($1)){ $$ = getVariable($1); } else {yyerror ("undeclared variable"); return 1;} }
@@ -133,8 +128,7 @@ void printRes(number symbol){
 }
 
 int isGreaterThan(number sym1, number sym2){
-    double max = fmax(sym1.value, sym2.value);
-    if(max == sym1.value){
+    if(sym1.value > sym2.value){
         return 1;
     }else{
         return 0;
@@ -142,103 +136,11 @@ int isGreaterThan(number sym1, number sym2){
 }
 
 int isGreaterThanOrEqual(number sym1, number sym2){
-    if(sym1.value == sym2.value){
-        return 1;
-    }
-    double max = fmax(sym1.value, sym2.value);
-    if(max == sym1.value){
+    if(sym1.value >= sym2.value){
         return 1;
     }else{
         return 0;
     }
-}
-
-number computePlusExpression(number sym1, number sym2){
-
-    number newNumber;
-
-    newNumber.type = fmax(sym1.type, sym2.type);
-
-    if(newNumber.type == '1'){
-        newNumber.value = sym1.value + sym2.value;
-    }else{
-        if(sym1.type == '1'){
-            newNumber.value = sym1.value + sym2.value;
-        }
-        else if(sym2.type == '1'){
-            newNumber.value = sym1.value + sym2.value;
-        }
-        else{
-            newNumber.value = sym1.value + sym2.value;
-        }
-    }
-    return newNumber;
-}
-
-number computeMinusExpression(number sym1, number sym2){
-
-    number newNumber;
-
-    newNumber.type = fmax(sym1.type, sym2.type);
-
-    if(newNumber.type == '1'){
-        newNumber.value = sym1.value - sym2.value;
-    }else{
-        if(sym1.type == '1'){
-            newNumber.value = sym1.value - sym2.value;
-        }
-        else if(sym2.type == '1'){
-            newNumber.value = sym1.value - sym2.value;
-        }
-        else{
-            newNumber.value = sym1.value - sym2.value;
-        }
-    }
-    return newNumber;
-}
-
-number computeMultExpression(number sym1, number sym2){
-
-    number newNumber;
-
-    newNumber.type = fmax(sym1.type, sym2.type);
-
-    if(newNumber.type == '1'){
-        newNumber.value = sym1.value * sym2.value;
-    }else{
-        if(sym1.type == '1'){
-            newNumber.value = sym1.value * sym2.value;
-        }
-        else if(sym2.type == '1'){
-            newNumber.value = sym1.value * sym2.value;
-        }
-        else{
-            newNumber.value = sym1.value * sym2.value;
-        }
-    }
-    return newNumber;
-}
-
-number computeDivExpression(number sym1, number sym2){
-
-    number newNumber;
-
-    newNumber.type = fmax(sym1.type, sym2.type);
-
-    if(newNumber.type == '1'){
-        newNumber.value = sym1.value / sym2.value;
-    }else{
-        if(sym1.type == '1'){
-            newNumber.value = sym1.value / sym2.value;
-        }
-        else if(sym2.type == '1'){
-            newNumber.value = sym1.value / sym2.value;
-        }
-        else{
-            newNumber.value = sym1.value / sym2.value;
-        }
-    }
-    return newNumber;
 }
 
 int yyerror(char *s){
