@@ -195,11 +195,25 @@ void printErrorMessage(char* operator, int type1, int type2) {
   return;
 }
 
-int main() {
-      sym_table = initialize_table();
-      int code = yyparse();
-      if(code == 0)
-            printf("Successfully parsed!\n");
-      else
-            printf("Parsing Error!\n");
+extern FILE* yyin;
+
+int main(int argc, char** argv) {
+	switch(argc) {
+		case 2:
+			yyin = fopen(argv[1], "r");
+      if(!yyin)
+        {
+          fprintf(stderr, "Can't read file %s\n", argv[1]);
+          return 1;
+        }
+			break;
+		default:
+		  printf("Type your program...\n");
+	}
+	sym_table = initialize_table();
+	int code = yyparse();
+	if(code == 0)
+				printf("Successfully parsed!\n");
+	else
+				printf("Parsing Error!\n");
 }

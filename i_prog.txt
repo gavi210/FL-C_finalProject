@@ -1,0 +1,10 @@
+int a; 
+int b; 
+while (a>b) {
+  int a = 12;
+  double b = -a;
+  print a;
+  print b;
+}
+print a;
+print b;
