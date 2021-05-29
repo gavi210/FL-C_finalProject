@@ -4,10 +4,10 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include "symbolTable.h"
-#include "yydeclarations.h"
-#include "typeSystem.h"
-#include "outputMessages.h"
+#include "util/symbolTable.h"
+#include "util/yydeclarations.h"
+#include "util/typeSystem.h"
+#include "util/outputMessages.h"
 
 #define PARSING_ERROR 1
 
