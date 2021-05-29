@@ -51,7 +51,7 @@ if                                  { return IF; }
 ">"                                 { return GT; }
 "<"                                 { return LT; }
 
-[-+*/=()\n{};]                      return *yytext;
+[-+*/=(){};]                        return *yytext;
 
 [ \t]                               ; /*skip whitespaces*/
 
