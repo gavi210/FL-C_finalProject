@@ -48,12 +48,14 @@ int isGreaterThanOrEqual(number sym1, number sym2);
 %left AND OR 
 %left NOT
 
+%start program
+
 %%
 
-program :   program assignment ';' '\n'          { insert_variable($2); }
+program :   program assignment ';'          { insert_variable($2); }
         |   program PRINT expr ';'          { printRes($3); }
-        |   program ctrlstmt                { ; }
-        |   
+        |   program ctrlstmt ';'            { ; }
+        |
         ;
 
 ctrlstmt:   IF '(' boolexpr ')' '{''}'      { printf("new level"); }
