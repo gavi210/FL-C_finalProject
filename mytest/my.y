@@ -17,9 +17,9 @@ void addSymbol(char *name, int value);
 int isGreaterThan(number sym1, number sym2);
 int isGreaterThanOrEqual(number sym1, number sym2);
 
-#define BOOLEAN_TYPE = 0
-#define INTEGER_TYPE = 1
-#define DOUBLE_TYPE = 2
+#define BOOLEAN_TYPE 0
+#define INTEGER_TYPE 1
+#define DOUBLE_TYPE 2
 
 %}
 
@@ -32,57 +32,64 @@ int isGreaterThanOrEqual(number sym1, number sym2);
 
 %token AND OR GTOE LTOE GT LT EQUAL
 
+%token IF
+
 %token <string> VARNAME
 %token <value> DOUBLEVAL INTEGERVAL BOOLVAL
 
 %token '(' ')'
 
-%type <value> expr boolexpr assignment
-
-%left PRINT
+%type <value> expr numexpr boolexpr assignment
 %left '+' '-'
 %left '*' '/'
 %left '('
 %right ')'
 
-%left AND OR
+%left AND OR 
 %left NOT
 
 %%
 
-program :   program assignment '\n'         { insert_variable($2); }
-        |   program PRINT expr '\n'         { printRes($3); }
-        |   program PRINT boolexpr '\n'     { printRes($3); }
+program :   program assignment ';' '\n'          { insert_variable($2); }
+        |   program PRINT expr ';'          { printRes($3); }
+        |   program ctrlstmt                { ; }
         |   
         ;
 
-expr    :   '(' expr ')'                    { 
+ctrlstmt:   IF '(' boolexpr ')' '{''}'      { printf("new level"); }
+        ;
+
+expr    :   numexpr                         { $$ = $1; }
+        |   boolexpr                        { $$ = $1; }
+        ;
+
+numexpr :   '(' numexpr ')'                 { 
                                                 $$.type = $2.type;
                                                 if($2.type == INTEGER_TYPE){$$.value = $2.value;}
                                                 else{ $$.value = $2.value;}
                                             }
-        |   expr '+' expr                   { $$.type = fmax($1.type, $3.type); $$.value = $1.value + $3.value; }
-        |   expr '-' expr                   { $$.type = fmax($1.type, $3.type); $$.value = $1.value - $3.value; }
-        |   expr '*' expr                   { $$.type = fmax($1.type, $3.type); $$.value = $1.value * $3.value; }
-        |   expr '/' expr                   { $$.type = fmax($1.type, $3.type); $$.value = $1.value / $3.value; }
+        |   numexpr '+' numexpr             { $$.type = fmax($1.type, $3.type); $$.value = $1.value + $3.value; }
+        |   numexpr '-' numexpr             { $$.type = fmax($1.type, $3.type); $$.value = $1.value - $3.value; }
+        |   numexpr '*' numexpr             { $$.type = fmax($1.type, $3.type); $$.value = $1.value * $3.value; }
+        |   numexpr '/' numexpr             { $$.type = fmax($1.type, $3.type); $$.value = $1.value / $3.value; }
         |   DOUBLEVAL                       { $$.type = INTEGER_TYPE; $$.value = $1.value; }
         |   INTEGERVAL                      { $$.type = INTEGER_TYPE; $$.value = $1.value; }
         |   VARNAME                         { if(has_been_decleared($1)){ $$ = getVariable($1); } else {yyerror ("undeclared variable"); return 1;} }
         ;
 
 boolexpr:   '(' boolexpr ')'                { $$ = $2; }
-        |   expr GT expr                    { $$.type = BOOLEAN_TYPE; $$.value = isGreaterThan($1, $3); }
-        |   expr LT expr                    { $$.type = BOOLEAN_TYPE; $$.value = isGreaterThan($3, $1); }
-        |   expr GTOE expr                  { $$.type = BOOLEAN_TYPE; $$.value = isGreaterThanOrEqual($1, $3); }
-        |   expr LTOE expr                  { $$.type = BOOLEAN_TYPE; $$.value = isGreaterThanOrEqual($3, $1); }
-        |   expr EQUAL expr                 { $$.type = BOOLEAN_TYPE; if($1.value == $3.value) { $$.value = 1; } else { $$.value = 0; }}
+        |   numexpr GT numexpr              { $$.type = BOOLEAN_TYPE; $$.value = isGreaterThan($1, $3); }
+        |   numexpr LT numexpr              { $$.type = BOOLEAN_TYPE; $$.value = isGreaterThan($3, $1); }
+        |   numexpr GTOE numexpr            { $$.type = BOOLEAN_TYPE; $$.value = isGreaterThanOrEqual($1, $3); }
+        |   numexpr LTOE numexpr            { $$.type = BOOLEAN_TYPE; $$.value = isGreaterThanOrEqual($3, $1); }
+        |   numexpr EQUAL numexpr           { $$.type = BOOLEAN_TYPE; if($1.value == $3.value) { $$.value = 1; } else { $$.value = 0; }}
         |   boolexpr AND boolexpr           { $$.value = $1.value * $3.value; }
         |   boolexpr OR boolexpr            { $$.value = fmax($1.value, $3.value); }
         |   NOT boolexpr                    { $$ = $2; $$.value = 1 - $2.value; }
         |   BOOLVAL                         { $$.type = BOOLEAN_TYPE; $$.value = $1.value; }
         ;
 
-assignment: INT VARNAME '=' expr            { 
+assignment: INT VARNAME '=' numexpr         { 
                                                 if($4.type == INTEGER_TYPE) {
                                                         $$.type = INTEGER_TYPE; $$.name = strdup($2); $$.value = $4.value;
                                                 }
@@ -90,7 +97,7 @@ assignment: INT VARNAME '=' expr            {
                                                     yyerror ("syntax error"); return 1;
                                                 }
                                             }
-        |   DOUBLE VARNAME '=' expr         { 
+        |   DOUBLE VARNAME '=' numexpr      { 
                                                 if($4.type == INTEGER_TYPE) {
                                                     $$.type = INTEGER_TYPE; $$.name = strdup($2); $$.value = $4.value; 
                                                 }

@@ -60,11 +60,12 @@ extern int yydebug;
     GT = 266,
     LT = 267,
     EQUAL = 268,
-    VARNAME = 269,
-    DOUBLEVAL = 270,
-    INTEGERVAL = 271,
-    BOOLVAL = 272,
-    NOT = 273
+    IF = 269,
+    VARNAME = 270,
+    DOUBLEVAL = 271,
+    INTEGERVAL = 272,
+    BOOLVAL = 273,
+    NOT = 274
   };
 #endif
 /* Tokens.  */
@@ -79,22 +80,23 @@ extern int yydebug;
 #define GT 266
 #define LT 267
 #define EQUAL 268
-#define VARNAME 269
-#define DOUBLEVAL 270
-#define INTEGERVAL 271
-#define BOOLVAL 272
-#define NOT 273
+#define IF 269
+#define VARNAME 270
+#define DOUBLEVAL 271
+#define INTEGERVAL 272
+#define BOOLVAL 273
+#define NOT 274
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 22 "my.y"
+#line 26 "my.y"
 
     struct number value;
     char *string;
 
-#line 98 "y.tab.h"
+#line 100 "y.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
