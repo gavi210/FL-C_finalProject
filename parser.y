@@ -41,9 +41,6 @@ struct parse_tree_node {
 // reserved keywords
 %token <type> WHILE IF ELSE PRINT
 
-// assignment operator
-%token ASSIGN_OP
-
 %type <type> enter_sub_scope exit_sub_scope decl typename assign
 
 %type <parse_tree_node_info> list_stmt stmt ctrl_stmt cond_stmt while_stmt if_stmt else_stmt expr_stmt expr a_expr b_expr
