@@ -10,19 +10,19 @@ char * getTypeValueDescription(int type, double value) {
 
   switch(type) {
     case VOID_TYPE: 
-      sprintf(buffer, "Type: %s, so far successfully parsed input!\n", type_name[type]);
+      sprintf(buffer, "Type: %s, so far successfully parsed input!", type_name[type]);
       break;
     case BOOL_TYPE:
-      sprintf(buffer, "Type: %s, Value: %d\n", type_name[type], value!=0.0);
+      sprintf(buffer, "Type: %s, Value: %d", type_name[type], value!=0.0);
       break;
     case INT_TYPE: 
-      sprintf(buffer, "Type: %s, Value: %d\n", type_name[type], (int) value);
+      sprintf(buffer, "Type: %s, Value: %d", type_name[type], (int) value);
       break;
     case DOUBLE_TYPE:
-      sprintf(buffer, "Type: %s, Value: %f\n", type_name[type], value);
+      sprintf(buffer, "Type: %s, Value: %f", type_name[type], value);
       break;
     default: 
-      sprintf(buffer, "No valid type specified!\n");
+      sprintf(buffer, "No valid type specified!");
   }
 
   return buffer;
@@ -39,7 +39,7 @@ void printExpressionResult(int type, double value) {
 void printVarDescription(char *sym_name) {
   node *table_entry = getsym(sym_name);
   if (table_entry == (node *)0)  {
-    printf("Variable %s still not defined!", sym_name); 
+    printf("Variable %s still not defined!\n", sym_name); 
   }
   else { 
     char *output_str = getTypeValueDescription(table_entry->type, table_entry->value);

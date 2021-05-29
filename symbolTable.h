@@ -75,8 +75,6 @@ node * getsym (char *sym_name) {
       return curr_node; // node found
     else 
       curr_node = curr_node->prev;
-
-    printf("Current name: %s!\n", curr_node->name);
   }
 
   // if here no value found

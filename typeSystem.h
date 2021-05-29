@@ -60,8 +60,7 @@ bool typesAreCorrect(int type1, int type2, int operator) {
 
 // boolean operators - must be both boolean 
 bool areTypesCompatible(int type1, int type2) {
-  printf("Type1: %d, Type2: %d\n", type1, type2);
-  
+
   if(type1 == BOOL_TYPE || type2 == BOOL_TYPE) { // at least on boolean 
     if(type1 == type2)   // even the other must be boolean
       return true;

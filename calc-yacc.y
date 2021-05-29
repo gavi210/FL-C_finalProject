@@ -46,7 +46,7 @@ struct parse_tree_node {
 
 %type <type> enter_sub_scope exit_sub_scope decl typename assign
 
-%type <parse_tree_node_info> list_stmt stmt ctrl_stmt cond_stmt while_stmt if_stmt else_stmt expr_stmt expr
+%type <parse_tree_node_info> list_stmt stmt ctrl_stmt cond_stmt while_stmt if_stmt else_stmt expr_stmt expr a_expr b_expr
 
 // precedence rules
 %nonassoc ENTER_SUB_SCOPE EXIT_SUB_SCOPE
@@ -77,7 +77,7 @@ list_stmt :
 stmt  : ';'                     { $$.type = VOID_TYPE; }
       | PRINT expr ';'          { printVarDescription($2.lexeme); $$.type = VOID_TYPE; }
       | ctrl_stmt               { $$.type = VOID_TYPE; }
-      | expr_stmt  ';'          { $$.type = VOID_TYPE; printf("Read declaration pt2\n"); }
+      | expr_stmt  ';'          { $$.type = VOID_TYPE; }
       ;
 
 ctrl_stmt :  while_stmt     { $$.type = VOID_TYPE; }   
@@ -100,13 +100,18 @@ else_stmt : ELSE enter_sub_scope stmt exit_sub_scope              { $$.type = VO
       | ELSE '{' enter_sub_scope list_stmt exit_sub_scope '}'         { $$.type = VOID_TYPE; }
 
 expr_stmt : expr                { printExpressionResult($1.type, $1.value); $$.type = VOID_TYPE; } 
-      | decl                    { $$.type = VOID_TYPE; printf("Read declaration!\n"); }
+      | decl                    { $$.type = VOID_TYPE; }
       | assign                  { $$.type = VOID_TYPE; }
       ;
 
 expr  : O_PAR expr C_PAR      { $$.type = $2.type; $$.value = $2.value; }
+      | a_expr                { $$.type = $1.type; $$.value = $1.value; }
+      | b_expr                { $$.type = $1.type; $$.value = $1.value; }
+      | IDENTIFIER            { node* sym_node = getsym($1);  if(sym_node == 0) { printf("Var %s is not defined!\n", $1); return PARSING_ERROR; }
+                                else { $$.value = sym_node->value; $$.type = sym_node->type; $$.lexeme = sym_node->name; } }
+      ;
 
-      | expr PLUS expr        { if(typesAreCorrect($1.type, $3.type, PLUS)) {
+a_expr : expr PLUS expr        { if(typesAreCorrect($1.type, $3.type, PLUS)) {
                                   $$.type = max($1.type, $3.type); $$.value = getValue(PLUS, $$.type, $1.value, $3.value);
                                 } else { printErrorMessage("+", $1.type, $3.type); return -1; } }
       | expr MINUS expr       { if(typesAreCorrect($1.type, $3.type, MINUS)) {
@@ -126,7 +131,11 @@ expr  : O_PAR expr C_PAR      { $$.type = $2.type; $$.value = $2.value; }
                                   snprintf(buffer, sizeof(buffer), "Operation '- UMINUS' is not applicabile with %s!\n", type_name[$2.type]);
                                   yyerror(buffer);
                                   return -1; } }
-      | expr BIGGER_THAN expr { if(typesAreCorrect($1.type, $3.type, BIGGER_THAN)) {
+      | INT_VAL               { $$.type = INT_TYPE; $$.value = $1; }
+      | FLOAT_VAL             { $$.type = DOUBLE_TYPE; $$.value = $1; }
+      ;
+
+b_expr : expr BIGGER_THAN expr { if(typesAreCorrect($1.type, $3.type, BIGGER_THAN)) {
                                   $$.type = BOOL_TYPE; $$.value = $1.value > $3.value;
                                 } else { printErrorMessage(">", $1.type, $3.type); return -1; } }
       | expr BIGGER_EQ_THAN expr { if(typesAreCorrect($1.type, $3.type, BIGGER_EQ_THAN)) {
@@ -152,15 +161,11 @@ expr  : O_PAR expr C_PAR      { $$.type = $2.type; $$.value = $2.value; }
                                   yyerror(buffer);
                                   return -1; } }
       | BOOL_VAL              { $$.type = BOOL_TYPE; $$.value = $1; }
-      | INT_VAL               { $$.type = INT_TYPE; $$.value = $1; }
-      | FLOAT_VAL             { $$.type = DOUBLE_TYPE; $$.value = $1; }
-      | IDENTIFIER            { node* sym_node = getsym($1);  if(sym_node == 0) { printf("Var %s is not defined!\n", $1); return PARSING_ERROR; }
-                                else { $$.value = sym_node->value; $$.type = sym_node->type; $$.lexeme = sym_node->name; } }
       ;
 
 decl : typename IDENTIFIER                  { if(insert_variable($2, $1, defaultValue($1)) == 0) $$ = $1; else return PARSING_ERROR; }
      | typename IDENTIFIER ASSIGN_OP expr   { if(areTypesCompatible($1, $4.type)) { if(insert_variable($2, $1, $4.value) == 0) $$ = $1; else return PARSING_ERROR; }
-                                            else { printf("Type does not matches... %s, %s\n", type_name[$1], type_name[$4.type]); return PARSING_ERROR; } }
+                                            	else { printf("Type does not matches... %s, %s\n", type_name[$1], type_name[$4.type]); return PARSING_ERROR; } }
      ;
 
 typename : BOOLEAN      { $$ = BOOL_TYPE; }
@@ -169,14 +174,14 @@ typename : BOOLEAN      { $$ = BOOL_TYPE; }
       ;
 
 assign : IDENTIFIER ASSIGN_OP expr    { node* sym_node = getsym($1);  if(sym_node == 0) { printf("Var %s is not defined!\n", $1); return PARSING_ERROR; }
-                                else if(areTypesCompatible(sym_node->type, $3.type)) { $$ = $3.type; sym_node->value = $3.value; } else return PARSING_ERROR; }
+                                          else if(areTypesCompatible(sym_node->type, $3.type)) { $$ = $3.type; sym_node->value = $3.value; } else return PARSING_ERROR; }
        ;
 
 enter_sub_scope : %prec ENTER_SUB_SCOPE    { enter_sub_table(); }
-          ;
+	;
 
 exit_sub_scope :  %prec EXIT_SUB_SCOPE     { exit_sub_table(); }
-          ;
+	;
 
 %%
 
