@@ -1,4 +1,4 @@
 flex -l calc-lex.l
 yacc -vd calc-yacc.y
 gcc y.tab.c -ly -ll
-./a.out i_prog.txt
+./a.out sample_programs/cond_stmt/b.txt

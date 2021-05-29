@@ -1,0 +1,4 @@
+int a = 12;
+while !true
+  int a = 24;
+print a;
