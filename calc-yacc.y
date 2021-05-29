@@ -48,6 +48,8 @@ struct parse_tree_node {
 %token <type> BOOLEAN
 %token <type> INT
 %token <type> DOUBLE
+
+// reserved keywords
 %token <type> WHILE
 %token <type> IF
 %token <type> ELSE
@@ -61,7 +63,7 @@ struct parse_tree_node {
 %type <type> enter_sub_scope
 %type <type> exit_sub_scope
 
-%type <parse_tree_node_info> stmt_list
+%type <parse_tree_node_info> list_stmt
 %type <parse_tree_node_info> stmt
 %type <parse_tree_node_info> ctrl_stmt
 %type <parse_tree_node_info> cond_stmt
@@ -91,18 +93,18 @@ struct parse_tree_node {
 %nonassoc IFX // gives single IF lower precedence
 %nonassoc ELSE
 
-%nonassoc STMT_LIST 
+%nonassoc LIST_STMT 
 
-%start stmt_list // scope
+%start list_stmt // scope
 
 %%
 
-stmt_list : 
-      | stmt_list stmt %prec STMT_LIST { $$.type = VOID; }
+list_stmt : 
+      | list_stmt stmt %prec LIST_STMT { $$.type = VOID; }
       ;
 
 stmt  : ';'                     { $$.type = VOID; }
-      | PRINT expr ';'          { nodeToString($2.lexeme); $$.type = VOID; }
+      | PRINT expr ';'          { printVarDescription($2.lexeme); $$.type = VOID; }
       | ctrl_stmt               { $$.type = VOID; }
       | expr_stmt  ';'          { $$.type = VOID; printf("Read declaration pt2\n"); }
       ;
@@ -112,7 +114,7 @@ ctrl_stmt :  while_stmt     { $$.type = VOID; }
       ;
 
 while_stmt :  WHILE expr enter_sub_scope stmt exit_sub_scope           { if($2.type != BOOL_TYPE) return PARSING_ERROR; else $$.type = VOID; }
-      |  WHILE expr '{' enter_sub_scope stmt_list exit_sub_scope '}'  { if($2.type != BOOL_TYPE) return PARSING_ERROR; else $$.type = VOID; }
+      |  WHILE expr '{' enter_sub_scope list_stmt exit_sub_scope '}'  { if($2.type != BOOL_TYPE) return PARSING_ERROR; else $$.type = VOID; }
       ;
 
 cond_stmt : if_stmt %prec IFX                                         { $$.type = VOID; }
@@ -120,13 +122,13 @@ cond_stmt : if_stmt %prec IFX                                         { $$.type 
       ;
 
 if_stmt : IF expr enter_sub_scope stmt  exit_sub_scope        { if($2.type != BOOL_TYPE) return PARSING_ERROR; else $$.type = VOID; }
-      |  IF expr '{' enter_sub_scope stmt_list exit_sub_scope '}'     %prec IFX  { if($2.type != BOOL_TYPE) return PARSING_ERROR; else $$.type = VOID; }
+      |  IF expr '{' enter_sub_scope list_stmt exit_sub_scope '}'     %prec IFX  { if($2.type != BOOL_TYPE) return PARSING_ERROR; else $$.type = VOID; }
       ;
 
 else_stmt : ELSE enter_sub_scope stmt exit_sub_scope              { $$.type = VOID; }
-      | ELSE '{' enter_sub_scope stmt_list exit_sub_scope '}'         { $$.type = VOID; }
+      | ELSE '{' enter_sub_scope list_stmt exit_sub_scope '}'         { $$.type = VOID; }
 
-expr_stmt : expr                { printResult($1.type, $1.value); $$.type = VOID; } 
+expr_stmt : expr                { printExpressionResult($1.type, $1.value); $$.type = VOID; } 
       | decl                    { $$.type = VOID; printf("Read declaration!\n"); }
       | assign                  { $$.type = VOID; }
       ;
@@ -186,7 +188,7 @@ expr  : O_PAR expr C_PAR      { $$.type = $2.type; $$.value = $2.value; }
       ;
 
 decl : typename IDENTIFIER                  { if(insert_variable($2, $1, defaultValue($1)) == 0) $$ = $1; else return PARSING_ERROR; }
-     | typename IDENTIFIER ASSIGN_OP expr   { if(typesMatches($1, $4.type)) { if(insert_variable($2, $1, $4.value) == 0) $$ = $1; else return PARSING_ERROR; }
+     | typename IDENTIFIER ASSIGN_OP expr   { if(areTypesCompatible($1, $4.type)) { if(insert_variable($2, $1, $4.value) == 0) $$ = $1; else return PARSING_ERROR; }
                                             else { printf("Type does not matches... %s, %s\n", type_name[$1], type_name[$4.type]); return PARSING_ERROR; } }
      ;
 
@@ -196,7 +198,7 @@ typename : BOOLEAN      { $$ = BOOL_TYPE; }
       ;
 
 assign : IDENTIFIER ASSIGN_OP expr    { node* sym_node = getsym($1);  if(sym_node == 0) { printf("Var %s is not defined!\n", $1); return PARSING_ERROR; }
-                                else if(typesMatches(sym_node->type, $3.type)) { $$ = $3.type; sym_node->value = $3.value; } else return PARSING_ERROR; }
+                                else if(areTypesCompatible(sym_node->type, $3.type)) { $$ = $3.type; sym_node->value = $3.value; } else return PARSING_ERROR; }
        ;
 
 enter_sub_scope : %prec ENTER_SUB_SCOPE    { enter_sub_table(); }
