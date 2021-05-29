@@ -4,7 +4,7 @@
 
 struct number{
     double value;
-    char type;
+    int type;
     char *name;
 };
 

@@ -62,7 +62,7 @@ expr    :   '(' expr ')'                    {
                                                 if($2.type == '1'){$$.value = $2.value;}
                                                 else{ $$.value = $2.value;}
                                             }
-        |   expr '+' expr                   { $$ = computePlusExpression($1, $3); }
+        |   expr '+' expr                   { $$.type = fmax($1.type, $3.type);  }
         |   expr '-' expr                   { $$ = computeMinusExpression($1, $3); }
         |   expr '*' expr                   { $$ = computeMultExpression($1, $3); }
         |   expr '/' expr                   { $$ = computeDivExpression($1, $3); }
