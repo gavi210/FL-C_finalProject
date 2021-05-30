@@ -13,15 +13,28 @@ typedef struct number number;
 /*
   Nodes linked together storing information about the different variables
 */
+
+struct head {
+    
+    struct head *parent;
+    struct node *first;
+
+};
+typedef struct head head; 
+
 struct node
 {
   struct number variable;
   struct node *next;      /* pointer to next node                 */
+  struct head *subTable;
 };
 
 typedef struct node node; /* avoid writing struct to decleare pointer */
 
-node *sym_table = (node *)0; // head of the list - default null since list empty
+head first_table = {0,0}; // head of the list - default null since list empty
+
+head *cur_table = &first_table;
+
 
 // insert new node - returns pointer
 node * putsym (number newSymbol)
@@ -33,16 +46,16 @@ node * putsym (number newSymbol)
   // assign fields
   new_node->variable = newSymbol;
 
-  // add new node as list head
-  new_node->next = (struct node *)sym_table;
-  sym_table = new_node;
+  cur_table->first = new_node;
+
   return new_node;
 }
 
 // pointer to node, null pointer if not present
 node * getsym (char *sym_name) {
+
   node *curr_node;
-  for (curr_node = sym_table; curr_node != (node *) 0;
+  for (curr_node = cur_table->first; curr_node != (node *) 0;
        curr_node = (node *)curr_node->next)
     if (strcmp (curr_node->variable.name,sym_name) == 0) // names matches
       return curr_node;
@@ -54,7 +67,6 @@ node * getsym (char *sym_name) {
 */
 int insert_variable (number variable) {  
 
-  
   node *table_entry;
   table_entry = getsym (variable.name);
 
@@ -82,20 +94,18 @@ bool has_been_decleared(char *sym_name) {
   return getsym(sym_name) != 0;
 }
 
-/*
-void printVariable(char *sym_name){
-    node *pointer = getsym(sym_name);
-    if (pointer == 0)  {
-        printf("undefinded");
-    }
-  else { 
-    
-    number variable = pointer->variable;
-    if(variable.type == '1'){
-        printf("type: %c, name: %s, value: %hi\n", variable.type, variable.name, variable.value);
-    }else{
-        printf("type: %c, name: %s, value: %f\n", variable.type, variable.name, variable.value);
-    }
-    
-  }
-}*/
+void makeSubTable(){
+
+    head * newhead = (head *) malloc (sizeof(head));
+
+    newhead->parent = cur_table;
+
+    cur_table = newhead;
+
+}
+
+void deleteSubTable(){
+
+    cur_table = cur_table->parent;
+
+}

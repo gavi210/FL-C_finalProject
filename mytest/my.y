@@ -58,7 +58,7 @@ program :   program assignment ';'          { insert_variable($2); }
         |   
         ;
 
-ctrlstmt:   IF'(' boolexpr ')''{' program'}'{ printf("new level"); }
+ctrlstmt:   IF'(' boolexpr ')''{' program'}'{ ; }
         ;
 
 expr    :   numexpr                         { $$ = $1; }

@@ -12,6 +12,8 @@ struct number{
 void yyerror (char *s);
 int yylex();
 void addSymbol(char *name, int value);
+void makeSubTable();
+void deleteSubTable();
 
 %}
 
@@ -51,7 +53,10 @@ if                                  { return IF; }
 ">"                                 { return GT; }
 "<"                                 { return LT; }
 
-[-+*/=(){};]                        return *yytext;
+"{"                                 { makeSubTable(); return *yytext; }
+"}"                                 { deleteSubTable(); return *yytext; }
+
+[-+*/=();]                          return *yytext;
 
 [ \t]                               ; /*skip whitespaces*/
 
