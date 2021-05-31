@@ -18,6 +18,7 @@ node *sym_table; // pointer used to access the current symbol table - updated du
 node * initialize_table() {
   node * default_table; 
   default_table = (node *) malloc (sizeof(node));
+  
   // initialize content - empty table
   default_table->parent = (node *)0;
   default_table->prev = (node *)0;
@@ -49,11 +50,13 @@ void putsym (char *sym_name, int sym_type, double sym_value)
 {
   node *new_node;
   new_node = (node *) malloc (sizeof(node));
+
   // assign fields
   new_node->name = (char *) malloc (strlen(sym_name)+1);
   strcpy (new_node->name,sym_name);
   new_node->type = sym_type;
   new_node->value = sym_value;
+
   // add new node as list head
   new_node->parent = sym_table->parent; // nodes in the table don't have reference to parent
   new_node->prev = (node *)sym_table;
@@ -66,10 +69,7 @@ void putsym (char *sym_name, int sym_type, double sym_value)
 node * getsym (char *sym_name) {
   node *curr_node = sym_table;
   while(curr_node->parent != (node *)0 || curr_node->prev != (node *)0) {
-    // head of the list
-    //if(curr_node->name == (node *)0)
-    //  curr_node = curr_node->parent;
-    if(curr_node->prev == (node *)0)
+    if(curr_node->prev == (node *)0) // reached head of the list
       curr_node = curr_node->parent;
     else if(strcmp (curr_node->name,sym_name) == 0) // names matches
       return curr_node; // node found
@@ -106,7 +106,6 @@ int insert_variable (char *sym_name, int sym_type, double sym_value) {
     return -1; 
   }
   else { 
-    
     putsym (sym_name, sym_type, sym_value);
     return 0;
   }

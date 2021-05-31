@@ -8,6 +8,10 @@
   (Loc).last_column = 1;                          \
   (Loc).last_line += 1;
 
+/* Advance of NUM column */
+#define LOCATION_ADV_COLUMNS(Loc, Num)              \
+  (Loc).last_column += Num;                         \
+
 /* Restart: move the first cursor to the last position. */
 # define LOCATION_STEP(Loc)                   \
   (Loc).first_column = (Loc).last_column;     \

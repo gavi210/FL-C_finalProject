@@ -3,6 +3,8 @@
 
 extern char *type_name[];
 extern struct node *getsym(char *sym_name);
+extern char *inputFileName; // needed for the 
+
 
 char * getTypeValueDescription(int type, double value) {
 
@@ -10,7 +12,7 @@ char * getTypeValueDescription(int type, double value) {
 
   switch(type) {
     case VOID_TYPE: 
-      sprintf(buffer, "Type: %s, so far successfully parsed input!", type_name[type]);
+      sprintf(buffer, "Type: %s", type_name[type]);
       break;
     case BOOL_TYPE:
       sprintf(buffer, "Type: %s, Value: %d", type_name[type], value!=0.0);
@@ -47,3 +49,14 @@ void printVarDescription(char *sym_name) {
   }
   return;
 }
+
+/* 
+  string generator for the error location - location for the error always returned 
+  differentiate among parsing and semantic error
+*/
+char * location_error_str() {
+  char *buffer = (char*)malloc(256 * sizeof(char));   
+  sprintf(buffer, "%s:%d:%d", inputFileName, yylloc.first_line, yylloc.first_line);   
+  return buffer;    
+}
+

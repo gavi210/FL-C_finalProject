@@ -5,7 +5,7 @@
 #include "y.tab.h" // imports all declarations done in yacc.y
 #include "util/locationTracking.h"
 
-#define YY_USER_ACTION yylloc.last_column += yyleng;
+#define YY_USER_ACTION LOCATION_ADV_COLUMNS(yylloc, yyleng)
 
 %}
 

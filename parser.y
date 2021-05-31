@@ -9,20 +9,20 @@
 #include "util/outputMessages.h"
 
 #define PARSING_ERROR 1
-#define YYERROR_VERBOSE 1
+#define YYERROR_VERBOSE 1 
 
-// print parsing error
+char *inputFileName; // to personalize the error message
+
 void yyerror (char const *message);
 
-// prototype for yylex function - produced by compling lex.l file
 int yylex(void);
 
-// on EOF - stop scanning - code 1 -> stop reading
 int yywrap() {
       return 1;
 }
+
 // on type not compatible - prompt the user error reason
-void printErrorMessage(char* operator, int type1, int type2);
+void printIncompatibleTypesError(char* operator, int type1, int type2);
 
 struct parse_tree_node {
       int type;     
@@ -33,15 +33,16 @@ struct parse_tree_node {
 %}
 
 %union {
-       char* lexeme; // yytext for the identifier
-       double value; // value for the token
+       char* lexeme; // text for identifiers
+       double value; // value for tokens
        int type;
        struct parse_tree_node parse_tree_node_info;
        }
 
-%locations
-%{ YYLTYPE yylloc;
-      %}
+%locations  // decleare the YYLTYPE struct 
+%{ 
+      YYLTYPE yylloc;  // instantiate the global instance
+%}
 
 // constant values 
 %token <value> BOOL_VAL INT_VAL FLOAT_VAL 
@@ -124,16 +125,16 @@ expr  : O_PAR expr C_PAR      { $$.type = $2.type; $$.value = $2.value; }
 
 a_expr : expr PLUS expr        { if(typesAreCorrect($1.type, $3.type, PLUS)) {
                                   $$.type = max($1.type, $3.type); $$.value = getValue(PLUS, $$.type, $1.value, $3.value);
-                                } else { printErrorMessage("+", $1.type, $3.type); return -1; } }
+                                } else { printIncompatibleTypesError("+", $1.type, $3.type); return -1; } }
       | expr MINUS expr       { if(typesAreCorrect($1.type, $3.type, MINUS)) {
                                   $$.type = max($1.type, $3.type); $$.value = $1.value - $3.value;
-                                } else { printErrorMessage("-", $1.type, $3.type); return -1; } }
+                                } else { printIncompatibleTypesError("-", $1.type, $3.type); return -1; } }
       | expr MOLT expr        { if(typesAreCorrect($1.type, $3.type, MOLT)) {
                                   $$.type = max($1.type, $3.type); $$.value = $1.value * $3.value; 
-                                } else { printErrorMessage("*", $1.type, $3.type); return -1; } }
+                                } else { printIncompatibleTypesError("*", $1.type, $3.type); return -1; } }
       | expr DIV expr         { if(typesAreCorrect($1.type, $3.type, DIV)) {
                                   $$.type = max($1.type, $3.type); $$.value = $1.value / $3.value;
-                                } else { printErrorMessage("/", $1.type, $3.type); return -1; } }
+                                } else { printIncompatibleTypesError("/", $1.type, $3.type); return -1; } }
 
       | MINUS expr %prec UMINUS { if(typesAreCorrect($2.type, $2.type, UMINUS)) {
                                   $$.type = $2.type; $$.value = - ($2.value);
@@ -148,22 +149,22 @@ a_expr : expr PLUS expr        { if(typesAreCorrect($1.type, $3.type, PLUS)) {
 
 b_expr : expr BIGGER_THAN expr { if(typesAreCorrect($1.type, $3.type, BIGGER_THAN)) {
                                   $$.type = BOOL_TYPE; $$.value = $1.value > $3.value;
-                                } else { printErrorMessage(">", $1.type, $3.type); return -1; } }
+                                } else { printIncompatibleTypesError(">", $1.type, $3.type); return -1; } }
       | expr BIGGER_EQ_THAN expr { if(typesAreCorrect($1.type, $3.type, BIGGER_EQ_THAN)) {
                                   $$.type = BOOL_TYPE; $$.value = $1.value >= $3.value;
-                                } else { printErrorMessage(">=", $1.type, $3.type); return -1; } }
+                                } else { printIncompatibleTypesError(">=", $1.type, $3.type); return -1; } }
       | expr SMALLER_THAN expr { if(typesAreCorrect($1.type, $3.type, SMALLER_THAN)) {
                                   $$.type = BOOL_TYPE; $$.value = $1.value < $3.value;
-                                } else { printErrorMessage("<", $1.type, $3.type); return -1; } }
+                                } else { printIncompatibleTypesError("<", $1.type, $3.type); return -1; } }
       | expr SMALLER_EQ_THAN expr { if(typesAreCorrect($1.type, $3.type, SMALLER_EQ_THAN)) {
                                   $$.type = BOOL_TYPE; $$.value = $1.value <= $3.value;
-                                } else { printErrorMessage("<=", $1.type, $3.type); return -1; } }
+                                } else { printIncompatibleTypesError("<=", $1.type, $3.type); return -1; } }
       | expr EQUAL_TO expr    { if(typesAreCorrect($1.type, $3.type, EQUAL_TO)) {
                                   $$.type = BOOL_TYPE; $$.value = $1.value == $3.value;
-                                } else { printErrorMessage("==", $1.type, $3.type); return -1; } }
+                                } else { printIncompatibleTypesError("==", $1.type, $3.type); return -1; } }
       | expr NOT_EQUAL_TO expr { if(typesAreCorrect($1.type, $3.type, NOT_EQUAL_TO)) {
                                   $$.type = BOOL_TYPE; $$.value = !($1.value == $3.value);
-                                } else { printErrorMessage("!=", $1.type, $3.type); return -1; } }
+                                } else { printIncompatibleTypesError("!=", $1.type, $3.type); return -1; } }
       | NOT expr              { if(typesAreCorrect($2.type, $2.type, NOT)) {
                                   $$.type = BOOL_TYPE; $$.value = !($2.value);
                               } else {
@@ -198,7 +199,7 @@ exit_sub_scope :  %prec EXIT_SUB_SCOPE     { exit_sub_table(); }
 
 #include "lex.yy.c"
 
-void printErrorMessage(char* operator, int type1, int type2) {
+void printIncompatibleTypesError(char* operator, int type1, int type2) {
   char buffer[1024];
   snprintf(buffer, sizeof(buffer), "Operation '%s' is not applicabile with %s and %s!\n", operator, type_name[type1], type_name[type2]);
 
@@ -212,15 +213,18 @@ void yyerror (char const *message){
 
 extern FILE* yyin;
 
+
 int main(int argc, char** argv) {
 	switch(argc) {
 		case 2:
 			yyin = fopen(argv[1], "r");
-      if(!yyin)
-        {
-          fprintf(stderr, "Can't read file %s\n", argv[1]);
-          return 1;
-        }
+
+      	if(!yyin) {
+          	fprintf(stderr, "Can't read file %s\n", argv[1]);
+          	return 1;
+        	}
+			else 
+				inputFileName = argv[1];
 			break;
 		default:
 		  printf("Type your program...\n");
