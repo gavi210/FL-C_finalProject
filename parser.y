@@ -5,12 +5,22 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "util/symbolTable.h"
-#include "util/yydeclarations.h"
 #include "util/typeSystem.h"
 #include "util/outputMessages.h"
 
 #define PARSING_ERROR 1
+#define YYERROR_VERBOSE 1
 
+// print parsing error
+void yyerror (char const *message);
+
+// prototype for yylex function - produced by compling lex.l file
+int yylex(void);
+
+// on EOF - stop scanning - code 1 -> stop reading
+int yywrap() {
+      return 1;
+}
 // on type not compatible - prompt the user error reason
 void printErrorMessage(char* operator, int type1, int type2);
 
@@ -28,6 +38,10 @@ struct parse_tree_node {
        int type;
        struct parse_tree_node parse_tree_node_info;
        }
+
+%locations
+%{ YYLTYPE yylloc;
+      %}
 
 // constant values 
 %token <value> BOOL_VAL INT_VAL FLOAT_VAL 
@@ -81,7 +95,7 @@ ctrl_stmt :  while_stmt     { $$.type = VOID_TYPE; }
       |  cond_stmt          { $$.type = VOID_TYPE; }
       ;
 
-while_stmt :  WHILE expr enter_sub_scope stmt exit_sub_scope           { if($2.type != BOOL_TYPE) return PARSING_ERROR; else $$.type = VOID_TYPE; }
+while_stmt :  WHILE expr enter_sub_scope stmt exit_sub_scope           { if($2.type != BOOL_TYPE) { return PARSING_ERROR; } else $$.type = VOID_TYPE; }
       |  WHILE expr '{' enter_sub_scope list_stmt exit_sub_scope '}'  { if($2.type != BOOL_TYPE) return PARSING_ERROR; else $$.type = VOID_TYPE; }
       ;
 
@@ -192,6 +206,10 @@ void printErrorMessage(char* operator, int type1, int type2) {
   return;
 }
 
+void yyerror (char const *message){
+  printf ("Error at location %d.%d-%d.%d: %s\n", yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, message);
+}
+
 extern FILE* yyin;
 
 int main(int argc, char** argv) {
@@ -207,7 +225,9 @@ int main(int argc, char** argv) {
 		default:
 		  printf("Type your program...\n");
 	}
+
 	sym_table = initialize_table();
+      
 	int code = yyparse();
 	if(code == 0)
 				printf("Successfully parsed!\n");

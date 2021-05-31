@@ -3,8 +3,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include "y.tab.h" // imports all declarations done in yacc.y
+#include "util/locationTracking.h"
+
+#define YY_USER_ACTION yylloc.last_column += yyleng;
 
 %}
+
 
 DIGIT         [0-9]
 INT_NUM       {DIGIT}+
@@ -23,9 +27,14 @@ LETTER        [a-zA-Z]
 IDENTIFIER    {LETTER}({LETTER}|{DIGIT})*
 
 %%
+%{
+  /* At each yylex invocation, mark the current position as the
+     start of the next token.  */
+  LOCATION_STEP (yylloc);
+%}
 
-[ ]     { /* skip blanks */ }
-\n      { /* skip new line character */ }
+[ \t]          { LOCATION_STEP (yylloc); }
+\n             { LOCATION_ADV_LINE (yylloc); LOCATION_STEP (yylloc); }
 
 {INT_NUM}      { yylval.value = atof(yytext); return INT_VAL;}
 {FLOAT_NUM}    { yylval.value = atof(yytext); return FLOAT_VAL;}
