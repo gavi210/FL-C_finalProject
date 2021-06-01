@@ -4,14 +4,15 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdbool.h>
+
 #include "util/symbolTable.h"
 #include "util/typeSystem.h"
 #include "util/outputMessages.h"
 
+#include "util/macros/parser.h"
+
 #define PARSING_ERROR 1
 #define YYERROR_VERBOSE 1 
-
-char *inputFileName; // to personalize the error message
 
 void yyerror (char const *message);
 
@@ -20,9 +21,6 @@ int yylex(void);
 int yywrap() {
       return 1;
 }
-
-// on type not compatible - prompt the user error reason
-void printIncompatibleTypesError(char* operator, int type1, int type2);
 
 struct parse_tree_node {
       int type;     
@@ -83,44 +81,43 @@ struct parse_tree_node {
 %%
 
 list_stmt : 
-      | list_stmt stmt %prec LIST_STMT { $$.type = VOID_TYPE; }
+      | list_stmt stmt %prec LIST_STMT { ASSIGN_VOID_TYPE($$) }
       ;
 
-stmt  : ';'                     { $$.type = VOID_TYPE; }
-      | PRINT expr ';'          { printVarDescription($2.lexeme); $$.type = VOID_TYPE; }
-      | ctrl_stmt               { $$.type = VOID_TYPE; }
-      | expr_stmt  ';'          { $$.type = VOID_TYPE; }
+stmt  : ';'                     { ASSIGN_VOID_TYPE($$) }
+      | PRINT expr ';'          { DUMP_VAR($2.lexeme) ASSIGN_VOID_TYPE($$) }
+      | ctrl_stmt               { ASSIGN_VOID_TYPE($$) }
+      | expr_stmt  ';'          { ASSIGN_VOID_TYPE($$) }
       ;
 
-ctrl_stmt :  while_stmt     { $$.type = VOID_TYPE; }   
-      |  cond_stmt          { $$.type = VOID_TYPE; }
+ctrl_stmt :  while_stmt     		{ ASSIGN_VOID_TYPE($$) }
+      |  cond_stmt          		{ ASSIGN_VOID_TYPE($$) }
       ;
 
-while_stmt :  WHILE expr enter_sub_scope stmt exit_sub_scope           { if($2.type != BOOL_TYPE) { return PARSING_ERROR; } else $$.type = VOID_TYPE; }
-      |  WHILE expr '{' enter_sub_scope list_stmt exit_sub_scope '}'  { if($2.type != BOOL_TYPE) return PARSING_ERROR; else $$.type = VOID_TYPE; }
+while_stmt :  WHILE expr enter_sub_scope stmt exit_sub_scope           	{ CHECK_EXPR_BOOL($2, $$) }
+      |  WHILE expr '{' enter_sub_scope list_stmt exit_sub_scope '}'  	{ CHECK_EXPR_BOOL($2, $$) }
       ;
 
-cond_stmt : if_stmt %prec IFX                                         { $$.type = VOID_TYPE; }
-      |  if_stmt else_stmt                                            { $$.type = VOID_TYPE; }
+cond_stmt : if_stmt %prec IFX                                         	{ ASSIGN_VOID_TYPE($$) }
+      |  if_stmt else_stmt                                            	{ ASSIGN_VOID_TYPE($$) }
       ;
 
-if_stmt : IF expr enter_sub_scope stmt  exit_sub_scope        { if($2.type != BOOL_TYPE) return PARSING_ERROR; else $$.type = VOID_TYPE; }
-      |  IF expr '{' enter_sub_scope list_stmt exit_sub_scope '}'     %prec IFX  { if($2.type != BOOL_TYPE) return PARSING_ERROR; else $$.type = VOID_TYPE; }
+if_stmt : IF expr enter_sub_scope stmt  exit_sub_scope        								{ CHECK_EXPR_BOOL($2, $$) }
+      |  IF expr '{' enter_sub_scope list_stmt exit_sub_scope '}' %prec IFX  	{ CHECK_EXPR_BOOL($2, $$) }
       ;
 
-else_stmt : ELSE enter_sub_scope stmt exit_sub_scope              { $$.type = VOID_TYPE; }
-      | ELSE '{' enter_sub_scope list_stmt exit_sub_scope '}'         { $$.type = VOID_TYPE; }
+else_stmt : ELSE enter_sub_scope stmt exit_sub_scope              		{ ASSIGN_VOID_TYPE($$) }
+      | ELSE '{' enter_sub_scope list_stmt exit_sub_scope '}'         { ASSIGN_VOID_TYPE($$) }
 
-expr_stmt : expr                { printExpressionResult($1.type, $1.value); $$.type = VOID_TYPE; } 
-      | decl                    { $$.type = VOID_TYPE; }
-      | assign                  { $$.type = VOID_TYPE; }
+expr_stmt : expr                { DUMP_EXPR($1) ASSIGN_VOID_TYPE($$) } 
+      | decl                    { ASSIGN_VOID_TYPE($$) }
+      | assign                  { ASSIGN_VOID_TYPE($$) }
       ;
 
-expr  : O_PAR expr C_PAR      { $$.type = $2.type; $$.value = $2.value; }
-      | a_expr                { $$.type = $1.type; $$.value = $1.value; }
-      | b_expr                { $$.type = $1.type; $$.value = $1.value; }
-      | IDENTIFIER            { node* sym_node = getsym($1);  if(sym_node == 0) { printf("Var %s is not defined!\n", $1); return PARSING_ERROR; }
-                                else { $$.value = sym_node->value; $$.type = sym_node->type; $$.lexeme = sym_node->name; } }
+expr  : O_PAR expr C_PAR      { COPY_TYPE_VALUE($$, $2) }
+      | a_expr                { COPY_TYPE_VALUE($$, $1) }
+      | b_expr                { COPY_TYPE_VALUE($$, $1) }
+      | IDENTIFIER            { CHECK_VAR_DECLEARED($$, getsym($1), $1) }
       ;
 
 a_expr : expr PLUS expr        { if(typesAreCorrect($1.type, $3.type, PLUS)) {
@@ -198,18 +195,12 @@ exit_sub_scope :  %prec EXIT_SUB_SCOPE     { exit_sub_table(); }
 %%
 
 #include "lex.yy.c"
-
-void printIncompatibleTypesError(char* operator, int type1, int type2) {
-  char buffer[1024];
-  snprintf(buffer, sizeof(buffer), "Operation '%s' is not applicabile with %s and %s!\n", operator, type_name[type1], type_name[type2]);
-
-  yyerror(buffer);
-  return;
-}
+#include "util/outputMessages.c"
+#include "util/symbolTable.c"
+#include "util/typeSystem.c"
 
 /* 
-  string generator for the error location - location for the error always returned 
-  differentiate among parsing and semantic error
+  string generator for the error location 
 */
 char * location_error_str() {
   char *buffer = (char*)malloc(256 * sizeof(char));   
@@ -217,27 +208,25 @@ char * location_error_str() {
   return buffer;    
 }
 
-/* receives as input message... clarifies the cause */
+/* adorn the error message with the error location */
 void yyerror (char const *message) {
   printf ("%s: error: %s\n", location_error_str(), message);
 }
-
-extern FILE* yyin;
 
 int main(int argc, char** argv) {
 	switch(argc) {
 		case 2:
 			yyin = fopen(argv[1], "r");
 
-      	if(!yyin) {
-          	fprintf(stderr, "Can't read file %s\n", argv[1]);
-          	return 1;
-        	}
+			if(!yyin) { // file not exists
+				fprintf(stderr, "Can't read file %s\n", argv[1]);
+				return 1;
+			}
 			else 
 				inputFileName = argv[1];
 			break;
 		default:
-		  printf("Type your program...\n");
+		  printf("Type here the program...\n");
 	}
 
 	sym_table = initialize_table();
