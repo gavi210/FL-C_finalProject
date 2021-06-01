@@ -46,15 +46,3 @@
     printIncompatibleTypesError(OpChar, Expr1.type, Expr2.type);    \
     return PARSING_ERROR;                                           \
   } 
-
-
-#define EVAL_UNARY_EXPR(Head, Expr, Op, OpChar, Value)            \
-  if(typesAreCorrect(Expr.type, Expr.type, Op)) {                 \
-    Head.type = Expr.type;                                        \
-    Head.value = Value;                                           \
-    }                                                             \
-  else {                                                        \
-    char buffer[256];                                           \
-    snprintf(buffer, sizeof(buffer), "Operation %s is not applicabile with %s!\n", OpChar, type_name[Expr.type]);   \
-    yyerror(buffer);                                                                                                \
-    return PARSING_ERROR; } }
