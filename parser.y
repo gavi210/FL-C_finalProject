@@ -120,10 +120,10 @@ expr  : O_PAR expr C_PAR      { COPY_TYPE_VALUE($$, $2) }
       | IDENTIFIER            { CHECK_VAR_DECLEARED($$, getsym($1), $1) }
       ;
 
-a_expr : expr PLUS expr        	{ EVAL_EXPR_RESULT($$, $1, $3, PLUS, "+") }
-      | expr MINUS expr       	{ EVAL_EXPR_RESULT($$, $1, $3, MINUS, "") }
-      | expr MOLT expr        	{ EVAL_EXPR_RESULT($$, $1, $3, MOLT, "*") }
-      | expr DIV expr               { EVAL_EXPR_RESULT($$, $1, $3, DIV, "/") }
+a_expr : expr PLUS expr        	{ EVAL_ARITH_EXPR_RESULT($$, $1, $3, PLUS, "+") }
+      | expr MINUS expr       	{ EVAL_ARITH_EXPR_RESULT($$, $1, $3, MINUS, "") }
+      | expr MOLT expr        	{ EVAL_ARITH_EXPR_RESULT($$, $1, $3, MOLT, "*") }
+      | expr DIV expr               { EVAL_ARITH_EXPR_RESULT($$, $1, $3, DIV, "/") }
 
       | MINUS expr %prec UMINUS { if(typesAreCorrect($2.type, $2.type, UMINUS)) {
                                   $$.type = $2.type; $$.value = - ($2.value);
@@ -136,32 +136,20 @@ a_expr : expr PLUS expr        	{ EVAL_EXPR_RESULT($$, $1, $3, PLUS, "+") }
       | FLOAT_VAL             { $$.type = DOUBLE_TYPE; $$.value = $1; }
       ;
 
-b_expr : expr BIGGER_THAN expr { if(typesAreCorrect($1.type, $3.type, BIGGER_THAN)) {
-                                  $$.type = BOOL_TYPE; $$.value = $1.value > $3.value;
-                                } else { printIncompatibleTypesError(">", $1.type, $3.type); return -1; } }
-      | expr BIGGER_EQ_THAN expr { if(typesAreCorrect($1.type, $3.type, BIGGER_EQ_THAN)) {
-                                  $$.type = BOOL_TYPE; $$.value = $1.value >= $3.value;
-                                } else { printIncompatibleTypesError(">=", $1.type, $3.type); return -1; } }
-      | expr SMALLER_THAN expr { if(typesAreCorrect($1.type, $3.type, SMALLER_THAN)) {
-                                  $$.type = BOOL_TYPE; $$.value = $1.value < $3.value;
-                                } else { printIncompatibleTypesError("<", $1.type, $3.type); return -1; } }
-      | expr SMALLER_EQ_THAN expr { if(typesAreCorrect($1.type, $3.type, SMALLER_EQ_THAN)) {
-                                  $$.type = BOOL_TYPE; $$.value = $1.value <= $3.value;
-                                } else { printIncompatibleTypesError("<=", $1.type, $3.type); return -1; } }
-      | expr EQUAL_TO expr    { if(typesAreCorrect($1.type, $3.type, EQUAL_TO)) {
-                                  $$.type = BOOL_TYPE; $$.value = $1.value == $3.value;
-                                } else { printIncompatibleTypesError("==", $1.type, $3.type); return -1; } }
-      | expr NOT_EQUAL_TO expr { if(typesAreCorrect($1.type, $3.type, NOT_EQUAL_TO)) {
-                                  $$.type = BOOL_TYPE; $$.value = !($1.value == $3.value);
-                                } else { printIncompatibleTypesError("!=", $1.type, $3.type); return -1; } }
-      | NOT expr              { if(typesAreCorrect($2.type, $2.type, NOT)) {
-                                  $$.type = BOOL_TYPE; $$.value = !($2.value);
-                              } else {
-                                  char buffer[1024];
-                                  snprintf(buffer, sizeof(buffer), "Operation '! NOT' is not applicabile with %s!\n", type_name[$2.type]);
-                                  yyerror(buffer);
-                                  return -1; } }
-      | BOOL_VAL              { $$.type = BOOL_TYPE; $$.value = $1; }
+b_expr : expr BIGGER_THAN expr      { EVAL_BOOL_EXPR_RESULT($$, $1, $3, BIGGER_THAN, ">", $1.value > $3.value) }
+      | expr BIGGER_EQ_THAN expr    { EVAL_BOOL_EXPR_RESULT($$, $1, $3, BIGGER_EQ_THAN, ">=", $1.value >= $3.value) }
+      | expr SMALLER_THAN expr 			{ EVAL_BOOL_EXPR_RESULT($$, $1, $3, SMALLER_THAN, "<", $1.value < $3.value) }
+      | expr SMALLER_EQ_THAN expr 	{ EVAL_BOOL_EXPR_RESULT($$, $1, $3, SMALLER_EQ_THAN, "<=", $1.value <= $3.value) }
+      | expr EQUAL_TO expr    			{ EVAL_BOOL_EXPR_RESULT($$, $1, $3, EQUAL_TO, "==", $1.value == $3.value) }
+      | expr NOT_EQUAL_TO expr 			{ EVAL_BOOL_EXPR_RESULT($$, $1, $3, NOT_EQUAL_TO, "!", !($1.value < $3.value)) }
+      | NOT expr              			{ if(typesAreCorrect($2.type, $2.type, NOT)) {
+                                  		$$.type = BOOL_TYPE; $$.value = !($2.value);
+                              					} else {
+                                  			char buffer[1024];
+																				snprintf(buffer, sizeof(buffer), "Operation '! NOT' is not applicabile with %s!\n", type_name[$2.type]);
+																				yyerror(buffer);
+																				return -1; } }
+      | BOOL_VAL              			{ $$.type = BOOL_TYPE; $$.value = $1; }
       ;
 
 decl : typename IDENTIFIER                  { if(insert_variable($2, $1, defaultValue($1)) == 0) $$ = $1; else return PARSING_ERROR; }
@@ -218,6 +206,7 @@ int main(int argc, char** argv) {
 				inputFileName = argv[1];
 			break;
 		default:
+      inputFileName = "stdin";
 		  printf("Type here the program...\n");
 	}
 
