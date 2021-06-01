@@ -21,4 +21,17 @@
     printf("Var %s is not defined!\n", VarName);      \
     return PARSING_ERROR;                             \
   }                                                   \
-  else Head.lexeme = VarName;                      
+  else {                                              \
+    Head.lexeme = Var->name;                          \
+    Head.type = Var->type;                            \
+    Head.value = Var->value; }
+
+#define EVAL_EXPR_RESULT(Head, Expr1, Expr2, Op, OpChar)            \
+  if(typesAreCorrect(Expr1.type, Expr2.type, Op)) {                 \
+    Head.type = max(Expr1.type, Expr2.type);                        \
+    Head.value = getValue(Op, Head.type, Expr1.value, Expr2.value); \
+  }                                                                 \
+  else {                                                            \
+    printIncompatibleTypesError(OpChar, Expr1.type, Expr2.type);    \
+    return PARSING_ERROR;                                           \
+  } 

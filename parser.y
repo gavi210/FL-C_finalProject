@@ -120,18 +120,10 @@ expr  : O_PAR expr C_PAR      { COPY_TYPE_VALUE($$, $2) }
       | IDENTIFIER            { CHECK_VAR_DECLEARED($$, getsym($1), $1) }
       ;
 
-a_expr : expr PLUS expr        { if(typesAreCorrect($1.type, $3.type, PLUS)) {
-                                  $$.type = max($1.type, $3.type); $$.value = getValue(PLUS, $$.type, $1.value, $3.value);
-                                } else { printIncompatibleTypesError("+", $1.type, $3.type); return -1; } }
-      | expr MINUS expr       { if(typesAreCorrect($1.type, $3.type, MINUS)) {
-                                  $$.type = max($1.type, $3.type); $$.value = $1.value - $3.value;
-                                } else { printIncompatibleTypesError("-", $1.type, $3.type); return -1; } }
-      | expr MOLT expr        { if(typesAreCorrect($1.type, $3.type, MOLT)) {
-                                  $$.type = max($1.type, $3.type); $$.value = $1.value * $3.value; 
-                                } else { printIncompatibleTypesError("*", $1.type, $3.type); return -1; } }
-      | expr DIV expr         { if(typesAreCorrect($1.type, $3.type, DIV)) {
-                                  $$.type = max($1.type, $3.type); $$.value = $1.value / $3.value;
-                                } else { printIncompatibleTypesError("/", $1.type, $3.type); return -1; } }
+a_expr : expr PLUS expr        	{ EVAL_EXPR_RESULT($$, $1, $3, PLUS, "+") }
+      | expr MINUS expr       	{ EVAL_EXPR_RESULT($$, $1, $3, MINUS, "") }
+      | expr MOLT expr        	{ EVAL_EXPR_RESULT($$, $1, $3, MOLT, "*") }
+      | expr DIV expr               { EVAL_EXPR_RESULT($$, $1, $3, DIV, "/") }
 
       | MINUS expr %prec UMINUS { if(typesAreCorrect($2.type, $2.type, UMINUS)) {
                                   $$.type = $2.type; $$.value = - ($2.value);
