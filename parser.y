@@ -207,12 +207,22 @@ void printIncompatibleTypesError(char* operator, int type1, int type2) {
   return;
 }
 
-void yyerror (char const *message){
-  printf ("Error at location %d.%d-%d.%d: %s\n", yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, message);
+/* 
+  string generator for the error location - location for the error always returned 
+  differentiate among parsing and semantic error
+*/
+char * location_error_str() {
+  char *buffer = (char*)malloc(256 * sizeof(char));   
+  sprintf(buffer, "%s:%d:%d", inputFileName, yylloc.first_line, yylloc.first_column);   
+  return buffer;    
+}
+
+/* receives as input message... clarifies the cause */
+void yyerror (char const *message) {
+  printf ("%s: error: %s\n", location_error_str(), message);
 }
 
 extern FILE* yyin;
-
 
 int main(int argc, char** argv) {
 	switch(argc) {
