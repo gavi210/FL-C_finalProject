@@ -38,6 +38,7 @@ or                                  { return OR; }
 not                                 { return NOT; }
 
 if                                  { return IF; }
+while                               { return WHILE; }
 
 {TYPE_NAME}                         { if (strcmp(yytext,"int") == 0) return INT; else if (strcmp(yytext,"double") == 0) return DOUBLE; else return BOOLEAN; }
 

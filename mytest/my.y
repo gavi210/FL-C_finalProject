@@ -32,7 +32,7 @@ int isGreaterThanOrEqual(number sym1, number sym2);
 
 %token AND OR GTOE LTOE GT LT EQUAL
 
-%token IF
+%token IF WHILE
 
 %token <string> VARNAME
 %token <value> DOUBLEVAL INTEGERVAL BOOLVAL
@@ -59,6 +59,7 @@ program :   program assignment ';'          { insert_variable($2); }
         ;
 
 ctrlstmt:   IF'(' boolexpr ')''{' program'}'{ ; }
+        |   WHILE'(' boolexpr ')''{' program'}'{ ; }
         ;
 
 expr    :   numexpr                         { $$ = $1; }
