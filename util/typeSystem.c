@@ -5,13 +5,8 @@
 double defaultValue(int type) {
   if(type == BOOL_TYPE)
     return 1.0;
-  else if(type == INT_TYPE || type == DOUBLE_TYPE)
-    return 0.0;
-  else  {
-    printf("Type %s has no default value associated!\n", type_name[type]);
-    return -1.0;
-  }
-    
+  else
+    return 0.0; 
 }
 
 // true - operands are compatible
@@ -65,8 +60,12 @@ bool areTypesCompatible(int type1, int type2) {
   }
   else if(type1 > type2)  // first double - other int
     return true;
-  else 
+  else {
+    char *buffer = (char*)malloc(256 * sizeof(char));
+    sprintf(buffer, "Types %s and %s are not compatible!", type_name[type1], type_name[type2]);
+    yyerror(buffer);
     return false; // first int - other double
+  }
 }
 
 // return max value from a and b - if int (1) and duoble (2) - returns double (2)

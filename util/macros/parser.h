@@ -17,10 +17,8 @@
   Dest.value = Src.value;
 
 #define CHECK_VAR_DECLEARED(Head, Var, VarName)       \
-  if(Var == 0) {                                      \
-    printf("Var %s is not defined!\n", VarName);      \
+  if(Var == 0)                                        \
     return PARSING_ERROR;                             \
-  }                                                   \
   else {                                              \
     Head.lexeme = Var->name;                          \
     Head.type = Var->type;                            \

@@ -156,8 +156,7 @@ b_expr : expr BIGGER_THAN expr      { EVAL_BOOL_EXPR_RESULT($$, $1, $3, BIGGER_T
       ;
 
 decl : typename IDENTIFIER                  { if(insert_variable($2, $1, defaultValue($1)) == 0) $$ = $1; else return PARSING_ERROR; }
-     | typename IDENTIFIER ASSIGN_OP expr   { if(areTypesCompatible($1, $4.type)) { if(insert_variable($2, $1, $4.value) == 0) $$ = $1; else return PARSING_ERROR; }
-                                            	else { printf("Type does not matches... %s, %s\n", type_name[$1], type_name[$4.type]); return PARSING_ERROR; } }
+     | typename IDENTIFIER ASSIGN_OP expr   { if(areTypesCompatible($1, $4.type) && insert_variable($2, $1, $4.value) == 0) $$ = $1; else return PARSING_ERROR; }
      ;
 
 typename : BOOLEAN      { $$ = BOOL_TYPE; }
@@ -165,8 +164,7 @@ typename : BOOLEAN      { $$ = BOOL_TYPE; }
       | DOUBLE          { $$ = DOUBLE_TYPE; }
       ;
 
-assign : IDENTIFIER ASSIGN_OP expr    { node* sym_node = getsym($1);  if(sym_node == 0) { printf("Var %s is not defined!\n", $1); return PARSING_ERROR; }
-                                          else if(areTypesCompatible(sym_node->type, $3.type)) { $$ = $3.type; sym_node->value = $3.value; } else return PARSING_ERROR; }
+assign : IDENTIFIER ASSIGN_OP expr    { node* sym_node = getsym($1);  if(sym_node != 0 && areTypesCompatible(sym_node->type, $3.type)) { $$ = $3.type; sym_node->value = $3.value; } else return PARSING_ERROR; }
        ;
 
 enter_sub_scope : %prec ENTER_SUB_SCOPE    { enter_sub_table(); }
@@ -193,20 +191,22 @@ char * location_error_str() {
 
 /* adorn the error message with the error location */
 void yyerror (char const *message) {
-  printf ("%s: error: %s\n", location_error_str(), message);
+  fprintf(output_stream, "%s: error: %s\n", location_error_str(), message);
 }
 
 int main(int argc, char** argv) {
 	// initialize default streams
 	yyin = stdin;
+	char* output_file_name;
 	output_stream = stdout;
+
 
 	int opt; 
 	int ix = 2;
-	while ((opt = getopt(argc, argv, "io")) != -1) {
+	while ((opt = getopt(argc, argv, "i:o:")) != -1) {
 			switch (opt) {
-			case 'i': yyin = fopen(argv[ix], "r"); printf("YYIN customize input file: %s\n", argv[ix]); ix = ix + 2; break;
-			case 'o': output_stream = fopen(argv[ix], "w"); ix = ix + 2; break;
+			case 'i': yyin = fopen(argv[ix], "r");  ix = ix + 2; break;
+			case 'o': output_stream = fopen(argv[ix], "w"); output_file_name = argv[ix]; ix = ix + 2; break;
 			default:
 					fprintf(stderr, "Usage: %s [-il] [file...]\n", argv[0]);
 					exit(EXIT_FAILURE);
@@ -214,12 +214,16 @@ int main(int argc, char** argv) {
 	}
 
 	if(!yyin){ // error in the customized input file
-		fprintf(stderr, "Can't read input file %s\n", argv[1]);
+		fprintf(stderr, "Can't read input file!\n");
+		
+		// delete output_stream 
+		if(output_stream != stdout)
+			remove(output_file_name);
 		return 1;
 	}
 	
 	if(!output_stream) { // error in the customized output file 
-		fprintf(stderr, "Can't write to output file %s\n", argv[1]);
+		fprintf(stderr, "Can't write to output file!\n");
 		return 1;
 	}
 

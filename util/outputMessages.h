@@ -8,3 +8,5 @@ void printExpressionResult(int type, double value);
 void dumpVar(char *sym_name);
 
 void printIncompatibleTypesError(char* operator, int type1, int type2);
+
+void printMessage(char* message);

@@ -29,7 +29,7 @@ void enter_sub_table() {
 // 0 - successfully exited, -1 - error
 int exit_sub_table() {
   if(sym_table->parent == (node *)0) { // trying exiting from default table - parsing error 
-    printf("Trying exiting from default symbol table... parsing error!\n");
+    yyerror("Cannot exit from default variable scope!");
     return -1;
   }
   sym_table = sym_table->parent; // switch back to parent
@@ -69,6 +69,9 @@ node * getsym (char *sym_name) {
   }
 
   // if here no value found
+  char *buffer = (char*)malloc(256 * sizeof(char));
+  sprintf(buffer, "Variable %s has not been defined!", sym_name);
+  yyerror(buffer);
   return (node *)0;
 }
 
@@ -92,8 +95,9 @@ bool already_decleared_in_scope(char *sym_name) {
 int insert_variable (char *sym_name, int sym_type, double sym_value) {  
   // verifies whether the sym_name is currently available
   if (already_decleared_in_scope(sym_name))  {
-    // name in use - return error - duplicate variable
-    printf("Variable %s already decleared in scope!\n", sym_name);
+    char *buffer = (char*)malloc(256 * sizeof(char));
+    sprintf(buffer, "Variable %s already decleared in this scope!", sym_name);
+    yyerror(buffer);
     return -1; 
   }
   else { 

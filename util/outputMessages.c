@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 extern char *type_name[];
+extern FILE *output_stream;
 extern struct node *getsym(char *sym_name);
 extern void yyerror();
 
@@ -35,27 +36,35 @@ char * getTypeValueDescription(int type, double value) {
 void printExpressionResult(int type, double value) {
   char *output_str = getTypeValueDescription(type, value);
 
-  printf("%s\n", output_str);
+  printMessage(output_str);
   return;
 }
 
 void dumpVar(char *sym_name) {
+  char *buffer = (char*)malloc(256 * sizeof(char)); // to store the printed message
   node *table_entry = getsym(sym_name);
+
   if (table_entry == (node *)0)  {
-    printf("Variable %s still not defined!\n", sym_name); 
+    sprintf(buffer, "Variable %s has not been defined!", sym_name);
+    yyerror(buffer);
   }
   else { 
     char *output_str = getTypeValueDescription(table_entry->type, table_entry->value);
-    printf("Name: %s, %s\n", table_entry->name, output_str);
+    sprintf(buffer, "Name: %s, %s", table_entry->name, output_str);
+    printMessage(buffer);
   }
   return;
 }
-
 
 void printIncompatibleTypesError(char* operator, int type1, int type2) {
   char buffer[1024];
   snprintf(buffer, sizeof(buffer), "Operation '%s' is not applicabile with %s and %s!\n", operator, type_name[type1], type_name[type2]);
 
   yyerror(buffer);
+  return;
+}
+
+void printMessage(char* message) {
+  fprintf(output_stream, "%s\n", message);
   return;
 }
