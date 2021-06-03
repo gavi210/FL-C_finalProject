@@ -158,3 +158,22 @@ Automatic casting is done at parsing time when integer expressions appears with 
 
 # Valid Input Examples
 A series of valid input examples are listed in the tests folder.
+
+
+# Run the Parser
+To run the parser, first clone the repo in the local machine to download the *parser.c* file. 
+```
+git clone <repo_url>
+```
+
+Then make the *parser.c* file executable
+```
+chmod +x parser.c
+```
+
+Execution of the parser could be customized with two options: the *-i <input_file>* and the *-o <output_file>*. They allows to specify an input/output stream different from the default one, the *stdin* and *stdout*.
+
+Run the parser with the command
+```
+./compiler.c [-i <input_file>] [-o <output_file>]
+```
