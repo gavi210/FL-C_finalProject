@@ -4,4 +4,4 @@ if true
 else 
   int a = 2;
 
-print a;
+a;

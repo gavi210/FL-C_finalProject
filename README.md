@@ -175,5 +175,5 @@ Execution of the parser could be customized with two options: the *-i <input_fil
 
 Run the parser with the command
 ```
-./compiler.c [-i <input_file>] [-o <output_file>]
+./compiler.c [-i <input_file>]
 ```

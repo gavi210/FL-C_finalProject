@@ -4,12 +4,15 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <unistd.h>
 #include "util/symbolTable.h"
 #include "util/yydeclarations.h"
 #include "util/typeSystem.h"
 #include "util/outputMessages.h"
 
 #define PARSING_ERROR 1
+
+FILE* output_stream; // output stream for the returned parser messages
 
 // on type not compatible - prompt the user error reason
 void printErrorMessage(char* operator, int type1, int type2);
@@ -194,23 +197,49 @@ void printErrorMessage(char* operator, int type1, int type2) {
 
 extern FILE* yyin;
 
+
 int main(int argc, char** argv) {
-	switch(argc) {
-		case 2:
-			yyin = fopen(argv[1], "r");
-      if(!yyin)
-        {
-          fprintf(stderr, "Can't read file %s\n", argv[1]);
-          return 1;
-        }
-			break;
-		default:
-		  printf("Type your program...\n");
+	// initialize default streams
+	yyin = stdin;
+	output_stream = stdout;
+
+	int opt; 
+	int ix = 2;
+	while ((opt = getopt(argc, argv, "io")) != -1) {
+			switch (opt) {
+			case 'i': yyin = fopen(argv[ix], "r"); printf("YYIN customize input file: %s\n", argv[ix]); ix = ix + 2; break;
+			case 'o': output_stream = fopen(argv[ix], "w"); ix = ix + 2; break;
+			default:
+					fprintf(stderr, "Usage: %s [-il] [file...]\n", argv[0]);
+					exit(EXIT_FAILURE);
+			}
 	}
+
+
+	if(!yyin){ // error in the customized input file
+		fprintf(stderr, "Can't read input file %s\n", argv[1]);
+		return 1;
+	}
+	
+	if(!output_stream) { // error in the customized output file 
+		fprintf(stderr, "Can't write to output file %s\n", argv[1]);
+		return 1;
+	}
+
+	// no file input... read from stdin
+	if(yyin == stdin)
+		printf("Type here your program, ^D to terminate!\n");
 	sym_table = initialize_table();
-	int code = yyparse();
-	if(code == 0)
-				printf("Successfully parsed!\n");
-	else
-				printf("Parsing Error!\n");
+
+	yyparse();
+
+	// flush output to file
+	fflush(output_stream);
+
+	// close files before exiting 
+	fclose(yyin);
+	fclose(output_stream);
+
+	return 0;
+	
 }
