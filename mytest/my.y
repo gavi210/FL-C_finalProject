@@ -39,7 +39,9 @@ int isGreaterThanOrEqual(number sym1, number sym2);
 
 %token '(' ')'
 
-%type <value> expr numexpr boolexpr assignment
+%type <value> expr numexpr assignment 
+%type <value> declaration boolexpr
+
 %left '+' '-'
 %left '*' '/'
 %left '('
@@ -53,6 +55,7 @@ int isGreaterThanOrEqual(number sym1, number sym2);
 %%
 
 program :   program assignment ';'          { insert_variable($2); }
+        |   program declaration ';'         { insert_variable($2); }
         |   program PRINT expr ';'          { printRes($3); }
         |   program ctrlstmt ';'            { ; }
         |   
@@ -90,6 +93,12 @@ boolexpr:   '(' boolexpr ')'                { $$ = $2; }
         |   boolexpr OR boolexpr            { $$.value = fmax($1.value, $3.value); }
         |   NOT boolexpr                    { $$ = $2; $$.value = 1 - $2.value; }
         |   BOOLVAL                         { $$.type = BOOLEAN_TYPE; $$.value = $1.value; }
+        |   VARNAME                         { if(has_been_decleared($1)){ $$ = getVariable($1); } else {yyerror ("undeclared variable"); return 1;} }
+        ;   
+
+declaration:INT VARNAME                     { $$.type = INTEGER_TYPE; $$.name = strdup($2); $$.value = 0; }
+        |   DOUBLE VARNAME                  { $$.type = DOUBLE_TYPE; $$.name = strdup($2); $$.value = 0.0; }
+        |   BOOLEAN VARNAME                 { $$.type = BOOLEAN_TYPE; $$.name = strdup($2); $$.value = 0; }
         ;
 
 assignment: INT VARNAME '=' numexpr         { 
@@ -97,15 +106,15 @@ assignment: INT VARNAME '=' numexpr         {
                                                         $$.type = INTEGER_TYPE; $$.name = strdup($2); $$.value = $4.value;
                                                 }
                                                 else{ 
-                                                    yyerror ("syntax error"); return 1;
+                                                    yyerror ("type error"); return 1;
                                                 }
                                             }
         |   DOUBLE VARNAME '=' numexpr      { 
                                                 if($4.type == INTEGER_TYPE) {
-                                                    $$.type = INTEGER_TYPE; $$.name = strdup($2); $$.value = $4.value; 
+                                                    $$.type = DOUBLE_TYPE; $$.name = strdup($2); $$.value = $4.value; 
                                                 }
                                                 else{
-                                                    yyerror ("syntax error"); return 1;
+                                                    yyerror ("type error"); return 1;
                                                 }
                                             }
         |   BOOLEAN VARNAME '=' boolexpr    {
@@ -113,7 +122,7 @@ assignment: INT VARNAME '=' numexpr         {
                                                     $$.type = BOOLEAN_TYPE; $$.name = strdup($2); $$.value = $4.value; 
                                                 }
                                                 else{
-                                                    yyerror ("syntax error"); return 1;
+                                                    yyerror ("type error"); return 1;
                                                 }
                                             }
         ;

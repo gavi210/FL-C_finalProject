@@ -46,6 +46,8 @@ node * putsym (number newSymbol)
   // assign fields
   new_node->variable = newSymbol;
 
+  new_node->next = cur_table->first;
+
   cur_table->first = new_node;
 
   return new_node;
