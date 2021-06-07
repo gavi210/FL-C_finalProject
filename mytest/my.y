@@ -74,6 +74,7 @@ numexpr :   '(' numexpr ')'                 {
                                                 if($2.type == INTEGER_TYPE){$$.value = $2.value;}
                                                 else{ $$.value = $2.value;}
                                             }
+        |   '-' numexpr                     { $$.type = $2.type; $$.value = - $2.value; }
         |   numexpr '+' numexpr             { $$.type = fmax($1.type, $3.type); $$.value = $1.value + $3.value; }
         |   numexpr '-' numexpr             { $$.type = fmax($1.type, $3.type); $$.value = $1.value - $3.value; }
         |   numexpr '*' numexpr             { $$.type = fmax($1.type, $3.type); $$.value = $1.value * $3.value; }
