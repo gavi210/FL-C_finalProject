@@ -1,4 +1,4 @@
-# Languega Description
+# Language Description
 The developed language allows the programmer to evaluate both boolean and algebric expressions. The language is based on three data types, namely boolean, integer and double, that could be associated either to constant values or to variables.
 To write a program, two control flow structures could be used, namely the *if-then-else* and the *while loop*. 
 Associated to this two structures there are either single-line or multi-line blocks of code. Recalling the C language, single-line blocks could be associate to a flow structure as they are and multi-line blocks must be enclosed in curly brackets. 

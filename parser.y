@@ -149,9 +149,9 @@ b_expr : expr BIGGER_THAN expr      { EVAL_BOOL_EXPR_RESULT($$, $1, $3, BIGGER_T
                                   		$$.type = BOOL_TYPE; $$.value = !($2.value);
                               					} else {
                                   			char buffer[1024];
-																				snprintf(buffer, sizeof(buffer), "Operation '! NOT' is not applicabile with %s!\n", type_name[$2.type]);
-																				yyerror(buffer);
-																				return -1; } }
+                                                snprintf(buffer, sizeof(buffer), "Operation '! NOT' is not applicabile with %s!\n", type_name[$2.type]);
+                                                yyerror(buffer);
+                                                return -1; } }
       | BOOL_VAL              			{ $$.type = BOOL_TYPE; $$.value = $1; }
       ;
 
@@ -180,6 +180,8 @@ exit_sub_scope :  %prec EXIT_SUB_SCOPE     { exit_sub_table(); }
 #include "util/symbolTable.c"
 #include "util/typeSystem.c"
 
+char* inputFileName;
+
 /* 
   string generator for the error location 
 */
@@ -197,6 +199,7 @@ void yyerror (char const *message) {
 int main(int argc, char** argv) {
 	// initialize default streams
 	yyin = stdin;
+      inputFileName = "stdin";
 	char* output_file_name;
 	output_stream = stdout;
 
@@ -205,7 +208,7 @@ int main(int argc, char** argv) {
 	int ix = 2;
 	while ((opt = getopt(argc, argv, "i:o:")) != -1) {
 			switch (opt) {
-			case 'i': yyin = fopen(argv[ix], "r");  ix = ix + 2; break;
+			case 'i': yyin = fopen(argv[ix], "r"); inputFileName = argv[ix]; ix = ix + 2; break;
 			case 'o': output_stream = fopen(argv[ix], "w"); output_file_name = argv[ix]; ix = ix + 2; break;
 			default:
 					fprintf(stderr, "Usage: %s [-il] [file...]\n", argv[0]);
