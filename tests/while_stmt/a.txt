@@ -1,6 +1,0 @@
-while (4.0<4) {
-  int a = 12;
-  double b = -a;
-  print a;
-  print b;
-}
