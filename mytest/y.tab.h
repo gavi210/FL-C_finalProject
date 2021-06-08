@@ -63,10 +63,11 @@ extern int yydebug;
     IF = 269,
     WHILE = 270,
     VARNAME = 271,
-    DOUBLEVAL = 272,
-    INTEGERVAL = 273,
-    BOOLVAL = 274,
-    NOT = 275
+    VARNAMEBOOL = 272,
+    DOUBLEVAL = 273,
+    INTEGERVAL = 274,
+    BOOLVAL = 275,
+    NOT = 276
   };
 #endif
 /* Tokens.  */
@@ -84,10 +85,11 @@ extern int yydebug;
 #define IF 269
 #define WHILE 270
 #define VARNAME 271
-#define DOUBLEVAL 272
-#define INTEGERVAL 273
-#define BOOLVAL 274
-#define NOT 275
+#define VARNAMEBOOL 272
+#define DOUBLEVAL 273
+#define INTEGERVAL 274
+#define BOOLVAL 275
+#define NOT 276
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -98,7 +100,7 @@ union YYSTYPE
     struct number value;
     char *string;
 
-#line 102 "y.tab.h"
+#line 104 "y.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

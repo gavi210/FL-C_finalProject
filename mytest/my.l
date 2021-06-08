@@ -40,9 +40,11 @@ not                                 { return NOT; }
 if                                  { return IF; }
 while                               { return WHILE; }
 
-{TYPE_NAME}                         { if (strcmp(yytext,"int") == 0) return INT; else if (strcmp(yytext,"double") == 0) return DOUBLE; else return BOOLEAN; }
+{TYPE_NAME}                         { if (strcmp(yytext,"int") == 0) return INT; else if (strcmp(yytext,"double") == 0) return DOUBLE; }
 
-{IDENTIFIER}                        {yylval.string = strdup(yytext); return VARNAME;}
+{IDENTIFIER}                        {yylval.string = strdup(yytext); return VARNAME; }
+
+"boolean "{IDENTIFIER}              {yylval.string = strdup(yytext); return VARNAMEBOOL; }
 
 {INT_NUM}[\.]{INT_NUM}              {yylval.value.value = atof(yytext); return DOUBLEVAL;}
 
