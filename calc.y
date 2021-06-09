@@ -44,8 +44,6 @@ bool areTypesComp(number sym1, number sym2);
 %type <value> expr numexpr assignment 
 %type <value> declaration boolexpr
 
-%define parse.error verbose
-
 %left '+' '-'
 %left '*' '/'
 %left '('

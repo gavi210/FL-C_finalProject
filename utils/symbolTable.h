@@ -50,6 +50,8 @@ node * putsym (number newSymbol)
 
   cur_table->first = new_node;
 
+  printf("%d", new_node->next);
+
   return new_node;
 }
 
@@ -58,16 +60,30 @@ node * getsym (char *sym_name) {
 
   node *curr_node;
 
-  for (curr_node = cur_table->first; curr_node != (node *) 0;
-       curr_node = (node *)curr_node->next)
+  curr_node = cur_table->first;
+
+  do
+  {
+    if (strcmp (curr_node->variable.name,sym_name) == 0) // names matches
+      return curr_node;
     
-    if(curr_node != void){
-      curr_node = cur_table->parent->first
+    curr_node = curr_node->next;
+
+    if(curr_node == (node *)0){
+      printf("aisodasoid");
     }
+  }while (curr_node != (node *)0);
+
+  return 0;
+  
+
+  /*
+  for (curr_node = cur_table->first; curr_node != (node *) 0; curr_node = (node *)curr_node->next)
 
     if (strcmp (curr_node->variable.name,sym_name) == 0) // names matches
       return curr_node;
   return 0;
+  */
 }
 
 /* 
@@ -76,7 +92,7 @@ node * getsym (char *sym_name) {
 int insert_variable (number variable) {  
 
   node *table_entry;
-  table_entry = getsym (variable.name);
+  table_entry = 0;
 
   // verifies whether the sym_name is currently available
   if (table_entry == 0)  {
