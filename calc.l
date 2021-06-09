@@ -1,3 +1,5 @@
+%option yylineno
+
 %{
 
 #include <math.h>
@@ -9,8 +11,8 @@ struct number{
 };
 
 #include "y.tab.h"
-void yyerror (char *s);
-int yylex();
+void yyerror (const char *msg);
+int yylex(void);
 void addSymbol(char *name, int value);
 void makeSubTable();
 void deleteSubTable();
@@ -30,25 +32,24 @@ IDENTIFIER    {LETTER}({LETTER}|{DIGIT})*
 
 print                               { return PRINT; }
 
-true                                {yylval.value.value = 1; return BOOLVAL; }
-false                               {yylval.value.value = 0; return BOOLVAL; }
-
 and                                 { return AND; }
 or                                  { return OR; }
 not                                 { return NOT; }
 
 if                                  { return IF; }
+else                                { return ELSE; }
 while                               { return WHILE; }
 
-{TYPE_NAME}                         { if (strcmp(yytext,"int") == 0) return INT; else if (strcmp(yytext,"double") == 0) return DOUBLE; }
+true                                { yylval.value.value = 1; return BOOLVAL; }
+false                               { yylval.value.value = 0; return BOOLVAL; }
 
-{IDENTIFIER}                        {yylval.string = strdup(yytext); return VARNAME; }
+{TYPE_NAME}                         { if (strcmp(yytext,"int") == 0) return INT; else if (strcmp(yytext,"double") == 0) return DOUBLE; else return BOOLEAN; }
 
-"boolean "{IDENTIFIER}              {yylval.string = strdup(yytext); return VARNAMEBOOL; }
+{IDENTIFIER}                        { yylval.string = strdup(yytext); return IDENTIFIER; }
 
-{INT_NUM}[\.]{INT_NUM}              {yylval.value.value = atof(yytext); return DOUBLEVAL;}
+{INT_NUM}[\.]{INT_NUM}              { yylval.value.value = atof(yytext); return DOUBLEVAL; }
 
-{INT_NUM}                           {yylval.value.value = atoi(yytext); return INTEGERVAL;}
+{INT_NUM}                           { yylval.value.value = atoi(yytext); return INTEGERVAL; }
 
 "=="                                { return EQUAL; }    
 "<="                                { return LTOE; }
@@ -61,7 +62,7 @@ while                               { return WHILE; }
 
 [-+*/=();]                          return *yytext;
 
-[ \t]                               ; /*skip whitespaces*/
+[ \t\n]                             ;
 
 .                                   {ECHO; yyerror ("unexpected character");}
 

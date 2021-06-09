@@ -60,8 +60,7 @@ node * getsym (char *sym_name) {
 
   for (curr_node = cur_table->first; curr_node != (node *) 0;
        curr_node = (node *)curr_node->next)
-    if(curr_node->next == (node *)0) // reached head of the list
-      curr_node = cur_table->parent->first;
+
     if (strcmp (curr_node->variable.name,sym_name) == 0) // names matches
       return curr_node;
   return 0;

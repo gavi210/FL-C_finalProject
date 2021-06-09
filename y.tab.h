@@ -49,67 +49,58 @@ extern int yydebug;
 # define YYTOKENTYPE
   enum yytokentype
   {
-    INT_VAL = 258,
-    FLOAT_VAL = 259,
-    BOOL_VAL = 260,
-    IDENTIFIER = 261,
-    BOOLEAN = 262,
-    INT = 263,
-    DOUBLE = 264,
-    ASSIGN_OP = 265,
-    BIGGER_THAN = 266,
-    SMALLER_THAN = 267,
-    EQUAL_TO = 268,
-    NOT_EQUAL_TO = 269,
-    BIGGER_EQ_THAN = 270,
-    SMALLER_EQ_THAN = 271,
-    NOT = 272,
-    MINUS = 273,
-    PLUS = 274,
-    MOLT = 275,
-    DIV = 276,
-    C_PAR = 277,
-    UMINUS = 278,
-    O_PAR = 279
+    INT = 258,
+    DOUBLE = 259,
+    BOOLEAN = 260,
+    PRINT = 261,
+    AND = 262,
+    OR = 263,
+    GTOE = 264,
+    LTOE = 265,
+    GT = 266,
+    LT = 267,
+    EQUAL = 268,
+    IF = 269,
+    ELSE = 270,
+    WHILE = 271,
+    IDENTIFIER = 272,
+    DOUBLEVAL = 273,
+    INTEGERVAL = 274,
+    BOOLVAL = 275,
+    NOT = 276
   };
 #endif
 /* Tokens.  */
-#define INT_VAL 258
-#define FLOAT_VAL 259
-#define BOOL_VAL 260
-#define IDENTIFIER 261
-#define BOOLEAN 262
-#define INT 263
-#define DOUBLE 264
-#define ASSIGN_OP 265
-#define BIGGER_THAN 266
-#define SMALLER_THAN 267
-#define EQUAL_TO 268
-#define NOT_EQUAL_TO 269
-#define BIGGER_EQ_THAN 270
-#define SMALLER_EQ_THAN 271
-#define NOT 272
-#define MINUS 273
-#define PLUS 274
-#define MOLT 275
-#define DIV 276
-#define C_PAR 277
-#define UMINUS 278
-#define O_PAR 279
+#define INT 258
+#define DOUBLE 259
+#define BOOLEAN 260
+#define PRINT 261
+#define AND 262
+#define OR 263
+#define GTOE 264
+#define LTOE 265
+#define GT 266
+#define LT 267
+#define EQUAL 268
+#define IF 269
+#define ELSE 270
+#define WHILE 271
+#define IDENTIFIER 272
+#define DOUBLEVAL 273
+#define INTEGERVAL 274
+#define BOOLVAL 275
+#define NOT 276
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 138 "calc-yacc.y"
+#line 28 "calc.y"
 
-       char* lexeme; // yytext for the identifier
-       double value; // value for the token
-       int type;
-       struct detailed_node detailed_node_info;
-       
+    struct number value;
+    char *string;
 
-#line 113 "y.tab.h"
+#line 104 "y.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

@@ -1,7 +1,0 @@
-int yyerror (char const *message)
-{
-  return fprintf (stderr, "%s\n", message);
-  fputs (message, stderr);
-  fputc ('\n', stderr);
-  return 0;
-}
