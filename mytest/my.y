@@ -99,7 +99,6 @@ boolexpr:   '(' boolexpr ')'                { $$ = $2; }
 
 declaration:INT VARNAME                     { $$.type = INTEGER_TYPE; $$.name = strdup($2); $$.value = 0; }
         |   DOUBLE VARNAME                  { $$.type = DOUBLE_TYPE; $$.name = strdup($2); $$.value = 0.0; }
-        |   VARNAMEBOOL                     { $$.type = BOOLEAN_TYPE; $$.name = strdup(memmove(str, str+n, len - n + 1);); $$.value = 0; }
         |   INT VARNAME '=' numexpr         { 
                                                 if($4.type == INTEGER_TYPE) {
                                                         $$.type = INTEGER_TYPE; $$.name = strdup($2); $$.value = $4.value;
@@ -116,16 +115,7 @@ declaration:INT VARNAME                     { $$.type = INTEGER_TYPE; $$.name = 
                                                     yyerror ("type error"); return 1;
                                                 }
                                             }
-        |   VARNAMEBOOL '=' boolexpr    {
-                                                if($3.type == BOOLEAN_TYPE) {
-                                                    $$.type = BOOLEAN_TYPE; $$.name = strdup($1); $$.value = $3.value; 
-                                                }
-                                                else{
-                                                    yyerror ("type error"); return 1;
-                                                }
-                                            }
-        ;
-
+       
 assignment: VARNAME '=' boolexpr            {}
         |   VARNAME '=' numexpr             {}
         ;

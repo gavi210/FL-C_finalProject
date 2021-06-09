@@ -30,7 +30,7 @@ line    : assignment ';'		{;}
         | printbin exp ';'      {printf("Printing %d", $2); printBits(sizeof($2), &$2); printf("\n");}
 		| line assignment ';'	{;}
 		| line print exp ';'	{printf("Printing %d\n", $3);}
-        | line printbin exp ';'	{printf("Printing %d", $3); printBits(sizeof($3), &$3); printf("\n");}
+        | line printbin exp ';'	{printf("Printing %d", $3); + $3; printBits(sizeof($3), &$3); printf("\n");}
 		| line exit_command ';'	{exit(EXIT_SUCCESS);}
         ;
 
