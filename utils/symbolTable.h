@@ -58,10 +58,20 @@ node * putsym (number newSymbol)
 // pointer to node, null pointer if not present
 node * getsym (char *sym_name) {
 
-  node *curr_node;
+  node *curr_node = cur_table->first;
 
-  curr_node = cur_table->first;
+  while(curr_node->next != (node *)0 ) {
+    if(curr_node->next == (node *)0) // reached head of the list
+      ;//curr_node = cur_table->parent->first;
+    else if(strcmp (curr_node->variable.name,sym_name) == 0) // names matches
+      return curr_node; // node found
+    else 
+      curr_node = curr_node->next;
+  }
 
+  return 0;
+
+  /*
   do
   {
     if (strcmp (curr_node->variable.name,sym_name) == 0) // names matches
@@ -73,9 +83,7 @@ node * getsym (char *sym_name) {
       printf("aisodasoid");
     }
   }while (curr_node != (node *)0);
-
-  return 0;
-  
+  */  
 
   /*
   for (curr_node = cur_table->first; curr_node != (node *) 0; curr_node = (node *)curr_node->next)
