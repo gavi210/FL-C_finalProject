@@ -193,7 +193,7 @@ char * location_error_str() {
 
 /* adorn the error message with the error location */
 void yyerror (char const *message) {
-  fprintf(output_stream, "%s: error: %s\n", location_error_str(), message);
+  fprintf(output_stream, "%s: %serror: %s%s\n", location_error_str(), RED, WHITE, message);
 }
 
 int main(int argc, char** argv) {
