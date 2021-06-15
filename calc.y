@@ -4,7 +4,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <math.h>
-#include "./utils/symbolTable.h"
+#include "./utils/symbol_table.c"
 
 /* symbl table implementation */
 
@@ -84,7 +84,7 @@ numexpr :   '(' numexpr ')'                 {
         |   numexpr '/' numexpr             { if(areTypesComp($1, $3)) {$$.type = fmax($1.type, $3.type); $$.value = $1.value / $3.value;} else { yyerror("type mismatch"); return 1;} }
         |   DOUBLEVAL                       { $$.type = DOUBLE_TYPE; $$.value = $1.value; }
         |   INTEGERVAL                      { $$.type = INTEGER_TYPE; $$.value = $1.value; }
-        |   IDENTIFIER                      { if(has_been_decleared($1)){ $$ = getVariable($1); } else {yyerror ("undeclared variable"); return 1;} }
+        |   IDENTIFIER                      { if(!is_not_in_table($1, true)){ $$ = get_variable($1); } else {yyerror ("undeclared variable"); return 1;} }
         ;
 
 boolexpr:   '(' boolexpr ')'                { $$ = $2; }
@@ -97,7 +97,7 @@ boolexpr:   '(' boolexpr ')'                { $$ = $2; }
         |   boolexpr OR boolexpr            { $$.value = fmax($1.value, $3.value); }
         |   NOT boolexpr                    { $$ = $2; $$.value = 1 - $2.value; }
         |   BOOLVAL                         { $$.type = BOOLEAN_TYPE; $$.value = $1.value; }
-        |   IDENTIFIER                      { if(getsym($1)->variable.type != BOOLEAN_TYPE){yyerror ("type mismatch"); return 1; }}
+        |   IDENTIFIER                      { if(getsym($1, true)->variable.type != BOOLEAN_TYPE){yyerror ("type mismatch"); return 1; }}
         ;   
 
 declaration:INT IDENTIFIER                  { $$.type = INTEGER_TYPE; $$.name = strdup($2); $$.value = 0; }
@@ -128,8 +128,8 @@ declaration:INT IDENTIFIER                  { $$.type = INTEGER_TYPE; $$.name = 
                                                 }
                                             }
        
-assignment: IDENTIFIER '=' boolexpr            { if(areTypesComp(getsym($1)->variable, $3)) { getsym($1)->variable.value = $3.value; } else { yyerror("type mismatch"); return 1;}}
-        |   IDENTIFIER '=' numexpr             { if(areTypesComp(getsym($1)->variable, $3)) { getsym($1)->variable.value = $3.value; } else { yyerror("type mismatch"); return 1;}}
+assignment: IDENTIFIER '=' boolexpr            { if(areTypesComp(getsym($1, false)->variable, $3)) { getsym($1, false)->variable.value = $3.value; } else { yyerror("type mismatch"); return 1;}}
+        |   IDENTIFIER '=' numexpr             { if(areTypesComp(getsym($1, false)->variable, $3)) { getsym($1, false)->variable.value = $3.value; } else { yyerror("type mismatch"); return 1;}}
         ;
 
 %%

@@ -37,28 +37,9 @@ head *symbol_table = &first_table;
 node * putsym (number newSymbol);
 node * getsym (char *sym_name, bool local);
 int insert_variable (number variable);
-bool is_not_in_table(char *sym_name);
+bool is_not_in_table(char *sym_name, bool local);
 void makeSubTable();
 void deleteSubTable();
-
-int main(){
-
-    number variable = { 10, 1, "sebastian" };
-
-    int res = insert_variable(variable);
-    printf("%i", res);
-
-    res = insert_variable(variable);
-    printf("%i", res);
-    
-    makeSubTable();
-
-    res = insert_variable(variable);
-    printf("%i", res);
-
-
-};
-
 
 node * putsym (number newSymbol)
 {
@@ -108,7 +89,7 @@ node * getsym (char *sym_name, bool local) {
 */
 int insert_variable (number variable) {  
 
-  if (is_not_in_table(variable.name))  {
+  if (is_not_in_table(variable.name, true))  {
     putsym (variable);
     return 0; 
   }
@@ -122,8 +103,8 @@ number get_variable(char *variable_name){
     return getsym(variable_name, false)->variable;
 }
 
-bool is_not_in_table(char *sym_name) {
-  return getsym(sym_name, true) == 0;
+bool is_not_in_table(char *sym_name, bool local) {
+  return getsym(sym_name, local) == 0;
 }
 
 void makeSubTable(){
