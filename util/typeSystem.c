@@ -52,8 +52,12 @@ bool areTypesCompatible(int type1, int type2) {
   if(type1 == BOOL_TYPE || type2 == BOOL_TYPE) { // at least on boolean 
     if(type1 == type2)   // even the other must be boolean
       return true;
-    else 
+    else {
+      char *buffer = (char*)malloc(256 * sizeof(char));
+      sprintf(buffer, "Types %s and %s are not compatible!", type_name[type1], type_name[type2]);
+      yyerror(buffer);
       return false;
+    }
   }
   else if(type1 == type2) { // equal - both int or both double
     return true;

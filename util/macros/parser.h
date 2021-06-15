@@ -1,14 +1,8 @@
 #define ASSIGN_VOID_TYPE(Tok)     \
   (Tok).type = VOID_TYPE;
 
-#define DUMP_VAR(VarName)         \
-  dumpVar(VarName);
-
 #define DUMP_EXPR(Expr)   \
-  if(Expr.lexeme == (char *) 0) \
-    printExpressionResult(Expr.type, Expr.value); \
-  else \
-    dumpVar(Expr.lexeme);
+  printExpressionResult(Expr.type, Expr.value); \
 
 #define CHECK_EXPR_BOOL(Expr, Head)     \
   if(Expr.type != BOOL_TYPE)            \
@@ -16,7 +10,6 @@
   else ASSIGN_VOID_TYPE(Head)       
 
 #define COPY_TYPE_VALUE_NAME(Dest, Src)    \
-  printf("Copying type, value, name\n"); \
   Dest.type = Src.type;               \
   Dest.value = Src.value;             \
   Dest.lexeme = Src.lexeme;   
