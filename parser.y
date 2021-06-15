@@ -211,7 +211,7 @@ int main(int argc, char** argv) {
 
 	if(!yyin || yyin == stdin){ // error in the customized input file
 		if(!yyin)
-			fprintf(stderr, "Can't read input file! Be sure the file path is correct!\n");
+			fprintf(stderr, "Can't read input file! Be sure that the file exists!\n");
 		else 
 			fprintf(stderr, "Input file not provided!\n");
 		
