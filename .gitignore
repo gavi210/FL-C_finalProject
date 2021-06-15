@@ -1,2 +1,5 @@
-*.c
+
 *.o*
+
+lex.yy.c
+y.tab.c
