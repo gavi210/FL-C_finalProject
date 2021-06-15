@@ -6,8 +6,6 @@ extern FILE *output_stream;
 extern struct node *getsym(char *sym_name);
 extern void yyerror();
 
-char *inputFileName; // needed for the 
-
 char * getTypeValueDescription(int type, double value) {
 
   char *buffer = (char*)malloc(256 * sizeof(char));

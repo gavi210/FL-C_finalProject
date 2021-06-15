@@ -4,8 +4,6 @@
 #define BLUE  "\x1B[34m"
 #define WHITE  "\x1B[37m"
 
-char *inputFileName; // needed for the 
-
 char * getTypeValueDescription(int type, double value);
 
 // customize output based on type

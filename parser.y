@@ -9,13 +9,14 @@
 #include "util/symbolTable.h"
 #include "util/typeSystem.h"
 #include "util/outputMessages.h"
-
+#include "util/errorMessages.h"
 #include "util/macros/parser.h"
 
 #define PARSING_ERROR 1
 #define YYERROR_VERBOSE 1 
 
 FILE* output_stream; // output stream for the returned parser messages
+char *inputFileName; // !NULL if yyin !stdin
 
 void yyerror (char const *message);
 
@@ -88,7 +89,7 @@ list_stmt :
       ;
 
 stmt  : ';'                     { ASSIGN_VOID_TYPE($$) }
-      | PRINT expr ';'          { DUMP_VAR($2.lexeme) ASSIGN_VOID_TYPE($$) }
+      | PRINT expr ';'          { DUMP_EXPR($2) ASSIGN_VOID_TYPE($$) }
       | ctrl_stmt               { ASSIGN_VOID_TYPE($$) }
       | expr_stmt  ';'          { ASSIGN_VOID_TYPE($$) }
       ;
@@ -117,10 +118,10 @@ expr_stmt : expr                { DUMP_EXPR($1) ASSIGN_VOID_TYPE($$) }
       | assign                  { ASSIGN_VOID_TYPE($$) }
       ;
 
-expr  : O_PAR expr C_PAR      { COPY_TYPE_VALUE($$, $2) }
-      | a_expr                { COPY_TYPE_VALUE($$, $1) }
-      | b_expr                { COPY_TYPE_VALUE($$, $1) }
-      | IDENTIFIER            { CHECK_VAR_DECLEARED($$, getsym($1), $1) }
+expr  : O_PAR expr C_PAR      { COPY_TYPE_VALUE_NAME($$, $2) }
+      | a_expr                { COPY_TYPE_VALUE_NAME($$, $1) }
+      | b_expr                { COPY_TYPE_VALUE_NAME($$, $1) }
+      | IDENTIFIER            { CHECK_VAR_DECLEARED($$, getsym($1)) }
       ;
 
 a_expr : expr PLUS expr        	{ EVAL_ARITH_EXPR_RESULT($$, $1, $3, PLUS, "+") }
@@ -152,7 +153,7 @@ b_expr : expr BIGGER_THAN expr      { EVAL_BOOL_EXPR_RESULT($$, $1, $3, BIGGER_T
                                                 snprintf(buffer, sizeof(buffer), "Operation '! NOT' is not applicabile with %s!\n", type_name[$2.type]);
                                                 yyerror(buffer);
                                                 return -1; } }
-      | BOOL_VAL              			{ $$.type = BOOL_TYPE; $$.value = $1; }
+      | BOOL_VAL              			{ $$.type = BOOL_TYPE; $$.value = $1; $$.lexeme = (char *) 0;}
       ;
 
 decl : typename IDENTIFIER                  { if(insert_variable($2, $1, defaultValue($1)) == 0) $$ = $1; else return PARSING_ERROR; }
@@ -191,15 +192,83 @@ char * location_error_str() {
   return buffer;    
 }
 
+char * highlight_error_position_str() {
+	char *str = (char *) malloc (sizeof(char) * yylloc.first_column + 1);
+
+	for (int i = 0; i < yylloc.first_column - 1; i++)
+		str[i] = '~';
+
+	str[yylloc.first_column - 1] = '^';
+	str[yylloc.first_column] = '\n';
+	char *buffer = (char*)malloc(1024 * sizeof(char));   
+  sprintf(buffer, "%s%s%s", GREEN, str, WHITE);   
+	
+  return buffer; 
+}
+
+char * error_line_str() {
+	
+	char * buffer =  (char *) malloc (sizeof(char) * 1024);// stores the error line
+	int ix = 0; // next free position in buffer
+
+	
+	if(yyin != stdin) {
+		FILE * file = fopen(inputFileName, "r"); // reopen input file
+		int lines_to_be_discarded = yylloc.first_line - 1;
+		
+		char ch = getc(file);
+
+		while(lines_to_be_discarded > 0) {
+			while (ch != '\n' && ch != EOF) { // discard line
+				printf("Char read: %c\n", ch);
+				ch = getc(file);
+			}
+			// should not be EOF -> deals with error situation
+			if(ch == EOF)
+				printf("Error retrieving error_line. Counter: %d, but encountered EOF!\n", lines_to_be_discarded);
+			else {
+				lines_to_be_discarded--;
+				ch = getc(file); // read first character of the new line
+			}
+		}
+		
+		// ch points to first character of erroneous line
+
+		while(ch != '\n' && ch != EOF) {
+			// store character to buffer
+			buffer[ix] = ch;
+			ch = getc(file);
+			ix++;
+		} 
+	}
+
+	buffer[ix] = '\0'; // mark end of line in the buffer 
+	return buffer;
+}
+
+char * error_descrition_str(char const *message) {
+
+	char *buffer = (char*)malloc(1024 * sizeof(char));   
+  sprintf(buffer, "%s%s: %serror: %s%s%s\n", BOLD, location_error_str(), RED, NO_BOLD, WHITE, message);   
+	
+  return buffer; 
+}
+
 /* adorn the error message with the error location */
 void yyerror (char const *message) {
-  fprintf(output_stream, "%s: %serror: %s%s\n", location_error_str(), RED, WHITE, message);
+	if(yyin == stdin) 
+		fprintf(output_stream, "%s\n%s", highlight_error_position_str(), error_descrition_str(message));
+	else 
+		//fprintf("%s\n%s\n%s\n", error_descrition_str(), error_line_str(), highlight_error_position_str());
+
+  // error message    
+  fprintf(output_stream, "%s\n%s\n%s", error_descrition_str(message), error_line_str(), highlight_error_position_str());
 }
 
 int main(int argc, char** argv) {
 	// initialize default streams
 	yyin = stdin;
-      inputFileName = "stdin";
+	inputFileName = "stdin";
 	char* output_file_name;
 	output_stream = stdout;
 
@@ -232,10 +301,10 @@ int main(int argc, char** argv) {
 
 	// no file input... read from stdin
 	if(yyin == stdin)
-		printf("Type here your program, ^D to terminate!\n");
+		fprintf(yyin, "Type here your program, ^D to terminate!\n");
 	sym_table = initialize_table();
 
-	yyparse();
+	int code = yyparse();
 
 	// flush output to file
 	fflush(output_stream);

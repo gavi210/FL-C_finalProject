@@ -5,18 +5,23 @@
   dumpVar(VarName);
 
 #define DUMP_EXPR(Expr)   \
-  printExpressionResult(Expr.type, Expr.value);
+  if(Expr.lexeme == (char *) 0) \
+    printExpressionResult(Expr.type, Expr.value); \
+  else \
+    dumpVar(Expr.lexeme);
 
 #define CHECK_EXPR_BOOL(Expr, Head)     \
   if(Expr.type != BOOL_TYPE)            \
     return PARSING_ERROR;               \
   else ASSIGN_VOID_TYPE(Head)       
 
-#define COPY_TYPE_VALUE(Dest, Src)    \
+#define COPY_TYPE_VALUE_NAME(Dest, Src)    \
+  printf("Copying type, value, name\n"); \
   Dest.type = Src.type;               \
-  Dest.value = Src.value;
+  Dest.value = Src.value;             \
+  Dest.lexeme = Src.lexeme;   
 
-#define CHECK_VAR_DECLEARED(Head, Var, VarName)       \
+#define CHECK_VAR_DECLEARED(Head, Var)       \
   if(Var == 0)                                        \
     return PARSING_ERROR;                             \
   else {                                              \

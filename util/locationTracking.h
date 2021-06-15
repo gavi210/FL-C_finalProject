@@ -5,20 +5,12 @@
 
 /* Advance of NUM lines. */
 # define LOCATION_ADV_LINE(Loc)             \
-  (Loc).last_column = 1;                          \
-  (Loc).last_line += 1;             \
-  printf("read line: %s", line);
+  (Loc).last_column = 1;                    \
+  (Loc).last_line += 1;                     
 
 /* Advance of NUM column */
-#define LOCATION_ADV_COLUMNS(Loc, Num, Line, NextToken, yytext)              \
-  (Loc).last_column += Num;                         \
-  printf("Read token: %s\n", yytext); \
-  /* reinitialize NextToken to empty string */\
-  NextToken = "";\
-  strncpy(NextToken, yytext, Num); \
-  printf("NextToken content: %s\n", NextToken); \
-  strcat(Line, NextToken); \
-  printf("line content: %s\n", Line);
+#define LOCATION_ADV_COLUMNS(Loc, Num, Line, NextToken, yytext)     \
+  (Loc).last_column += Num;                                         \
 
 /* Restart: move the first cursor to the last position. */
 # define LOCATION_STEP(Loc)                   \
