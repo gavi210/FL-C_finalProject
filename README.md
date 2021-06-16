@@ -10,7 +10,7 @@ Starting from the language description, follows its **Formal Grammar**.
 # Formal Grammar
 The grammar is formally describe by the tuple G = <V,N,P,S>.
 
-V = { BOOLEAN, INT, DOUBLE, IDENTIFIER, ASSIGN_OP, BIGGER_THAN, SMALLER_THAN, EQUAL_TO, NOT_EQUAL_TO, BIGGER_EQ_THAN, SMALLER_EQ_THAN, NOT, 
+V = { the set of all terminal symbols } = { BOOLEAN, INT, DOUBLE, IDENTIFIER, ASSIGN_OP, BIGGER_THAN, SMALLER_THAN, EQUAL_TO, NOT_EQUAL_TO, BIGGER_EQ_THAN, SMALLER_EQ_THAN, NOT, 
   BOOL_VAL, PLUS, MINUS, MOLT, DIV, INT_VAL, DOUBLE_VAL, O_PAR, C_PAR, IF, ELSE, WHILE, PRINT }
 N = { enter_sub_scope, exit_sub_scope, decl, typename, assign, list_stmt, stmt, ctrl_stmt, cond_stmt, while_stmt, if_stmt, else_stmt,
   expr_stmt, expr, a_expr, b_expr}

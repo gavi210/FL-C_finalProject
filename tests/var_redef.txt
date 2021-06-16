@@ -3,7 +3,7 @@ print a;
 
 while(4>2) {
   a = 21; 
-  print(a+2);
+  print(a);
   int a = 30;
   print a;
 }

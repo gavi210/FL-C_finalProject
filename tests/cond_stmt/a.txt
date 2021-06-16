@@ -1,8 +1,8 @@
-print a;
 int a = -1;
-if true 
+if true {
   int a = 1;
-else 
+}
+print a;
   int a = 2;
 
 print a;
