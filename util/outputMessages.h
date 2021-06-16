@@ -1,16 +1,14 @@
-#define RED  "\x1B[31m"
-#define GREEN  "\x1B[32m"
-#define YELLOW  "\x1B[33m"
-#define BLUE  "\x1B[34m"
-#define WHITE  "\x1B[37m"
+/*
+  In this file are decleared the support methods that generate and print informative messages about
+  the expressions evaluated by the compiler.
+*/
 
-char * getTypeValueDescription(int type, double value);
+/* Prints type and value for the given expression. The method customizes the output string to better print the expression value  */
+void dumpExpression(int type, double value);
 
-// customize output based on type
-void printExpressionResult(int type, double value);
+/* Should and expression cannot be evaluated due to incompatible types, the method generates the correspondent informative error
+   message */
+void throwIncompatibleTypeError(char* operator, int type1, int type2);
 
-void dumpVar(char *sym_name);
-
-void printIncompatibleTypesError(char* operator, int type1, int type2);
-
+/* Support methods to print the input message to the 'output_stream' */
 void printMessage(char* message);

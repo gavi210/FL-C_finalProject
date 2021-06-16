@@ -1,6 +1,5 @@
-
-/* 
-  error location substring 
+/*
+  returns a string in the form <file_name>:<line>:<column>
 */
 char *location_error_str()
 {
@@ -10,7 +9,7 @@ char *location_error_str()
 }
 
 /*
-  sequence of ~^ to highlight the error position
+  sequence of ~^ to highlight the error position. '^' identifies the actual position
 */
 char *highlight_error_position_str()
 {
@@ -20,34 +19,33 @@ char *highlight_error_position_str()
     str[i] = '~';
 
   str[yylloc.first_column - 1] = '^';
+
   char *buffer = (char *)malloc(1024 * sizeof(char));
-  sprintf(buffer, "%s%s%s", GREEN, str, WHITE);
+  sprintf(buffer, "%s%s%s", GREEN, str, WHITE); // apply color to output
 
   return buffer;
 }
 
-/*
-  returns a copy of the erronuous line in the input program
-*/
 char * error_line_str()
 {
 
   char *buffer = (char *)malloc(sizeof(char) * 1024); // stores the error line
   int ix = 0;                                         // next free position in buffer
 
-  if (yyin != stdin)
+  if (yyin != stdin) // yyin should not be stdin, but left in the code to increase robustness
   {
-    FILE *file = fopen(inputFileName, "r"); // reopen input file
-    int lines_to_be_discarded = yylloc.first_line - 1;
+    FILE *file = fopen(inputFileName, "r"); // reopen program file, scan it indipendently from the parser
+    
+    int lines_to_be_discarded = yylloc.first_line - 1; // useless lines, previous the error
 
     char ch = getc(file);
 
     while (lines_to_be_discarded > 0)
     {
-      while (ch != '\n' && ch != EOF) // discard line
+      while (ch != '\n' && ch != EOF) // discard useless lines
         ch = getc(file);
 
-      // should not be EOF -> deals with error situation
+      // should not be EOF -> deals with error situation to increase robustness
       if (ch == EOF)
         printf("Error retrieving error_line. Counter: %d, but encountered EOF!\n", lines_to_be_discarded);
       else
@@ -59,9 +57,8 @@ char * error_line_str()
 
     // ch points to first character of erroneous line
 
-    while (ch != '\n' && ch != EOF)
+    while (ch != '\n' && ch != EOF) // copy line to buffer char by char
     {
-      // store character to buffer
       buffer[ix] = ch;
       ch = getc(file);
       ix++;

@@ -4,7 +4,7 @@
 // returns default value for each valid data type
 double defaultValue(int type) {
   if(type == BOOL_TYPE)
-    return 1.0;
+    return 1.0; // for boolean values the default is true
   else
     return 0.0; 
 }
