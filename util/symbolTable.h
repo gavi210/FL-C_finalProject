@@ -2,31 +2,55 @@
 #include <string.h>
 #include <stdio.h>
 
-typedef struct node
+/* content of the variable */
+struct variable {
+    double value;
+    int type;
+    char *name;
+};
+typedef struct variable variable;
+
+/* entry in the table, node in the list of variables */
+struct table_node
 {
-  char *name;               /* name of the variable                 */
-  int type;                 /* 0 - boolean, 1 - integer, 2 - double */
-  double value;             /* value hold by the variable           */
-  struct node *sub_table;   /* subscope */
-  struct node *prev;        /* pointer to previous inserted node    */
-  struct node *parent;
-} node;
+  struct variable *var;
+  struct table_node *next;      /* pointer to next table_node  */
+};
+typedef struct table_node table_node; 
 
-node *sym_table; // pointer used to access the current symbol table - updated during parsing
+/* struct encapsulating the list of table_nodes keeping information about the variables decleared in the scope */
+struct table_obj {
+    struct table_obj *parent; /* pointer to parent table_obj */  
+    struct table_node *first;
+};
+typedef struct table_obj table_obj; 
 
-// invoked at the beginning of the parsing - default table
-node * initialize_table();
+/* global variable - reference to current table for the current scope */
+table_obj *sym_table; 
 
+
+/* METHOD PROTOTYPES */
+
+/* initialize default symbol table */
+table_obj * initialize_table();
+
+/* from current table, decleare and enter the sub one */
 void enter_sub_table();
 
-// 0 - successfully exited, -1 - error
+/* exit from current subscope 
+  return: 
+    - 0 : ok
+    - 1 : error
+*/
 int exit_sub_table();
 
-// insert new node - update global variable sym_table
-void putsym (char *sym_name, int sym_type, double sym_value);
+/* 
+  store new variable in the current table (scope)
+*/
+void putvar (variable *var);
 
 // pointer to node, (node *)0 pointer if element not found
-node * getsym (char *sym_name);
+variable * getvar (char *sym_name, bool local);
 
 // search in the current scope if variable with sym_name already decleared
 bool already_decleared_in_scope(char *sym_name);

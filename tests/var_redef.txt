@@ -2,7 +2,9 @@ int a = 12;
 print a;
 
 while(4>2) {
-  int a = 21; 
+  a = 21; 
   print(a+2);
+  int a = 30;
+  print a;
 }
-print(-a2);
+print(a);

@@ -1,4 +1,11 @@
-while !true
-  ;
+int a = 12;
+while (!(true)) {
+  double b = -a;
+  boolean c = b > a;
+  print a;
+  print(b);
+  print(a+b> -a+b);
+  print(c);
+}
 int a = 12;
 print a;

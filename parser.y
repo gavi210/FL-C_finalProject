@@ -121,7 +121,7 @@ expr_stmt : expr                { ASSIGN_VOID_TYPE($$) }
 expr  : O_PAR expr C_PAR      	{ COPY_TYPE_VALUE_NAME($$, $2) }
       | a_expr                	{ COPY_TYPE_VALUE_NAME($$, $1) }
       | b_expr                	{ COPY_TYPE_VALUE_NAME($$, $1) }
-      | IDENTIFIER            	{ CHECK_VAR_DECLEARED($$, getsym($1)) }
+      | IDENTIFIER            	{ CHECK_VAR_DECLEARED($$, getvar($1,false)) }
       ;
 
 a_expr : expr PLUS expr        	{ EVAL_ARITH_EXPR_RESULT($$, $1, $3, PLUS, "+") }
@@ -165,7 +165,7 @@ typename : BOOLEAN      { $$ = BOOL_TYPE; }
       | DOUBLE          { $$ = DOUBLE_TYPE; }
       ;
 
-assign : IDENTIFIER ASSIGN_OP expr    { node* sym_node = getsym($1);  if(sym_node != 0 && areTypesCompatible(sym_node->type, $3.type)) { $$ = $3.type; sym_node->value = $3.value; } else return PARSING_ERROR; }
+assign : IDENTIFIER ASSIGN_OP expr    { variable* sym_node = getvar($1,false);  if(sym_node != 0 && areTypesCompatible(sym_node->type, $3.type)) { $$ = $3.type; sym_node->value = $3.value; } else return PARSING_ERROR; }
        ;
 
 enter_sub_scope : %prec ENTER_SUB_SCOPE    { enter_sub_table(); }
