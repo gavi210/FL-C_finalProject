@@ -1,0 +1,7 @@
+if(12<=12.0)
+  print(28*12.0/(3+1));
+else
+  int a = 0;
+  while(true){
+    print (a);
+  }

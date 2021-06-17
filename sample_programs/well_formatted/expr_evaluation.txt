@@ -1,0 +1,7 @@
+int a = 12;
+int b = 24; 
+double c = 24;
+
+print(a/b);
+print(a/c);
+print((a/b) >= ((a/c)));
